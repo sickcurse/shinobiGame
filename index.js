@@ -170,12 +170,6 @@ k: {
 }
 
 
-
-enemy.draw()
-console.log(player.draw)
-console.log(enemy.draw)
-
-
 decreaseTimer()
 
 function animate() {
@@ -193,7 +187,6 @@ function animate() {
     enemy.velocity.x = 0
 
     // Player movement
-   
     if(keys.a.pressed && player.lastKey === 'a') {
         player.velocity.x = -5
         player.switchSprite('run')
@@ -210,28 +203,26 @@ function animate() {
     } else if (player.velocity.y > 0){
         player.switchSprite('fall')
     }
-    
 
-    //  Enemy movement
-    if(keys.h.pressed && lastKey === 'h') {
+    // Enemy movement
+    if(keys.h.pressed && enemy.lastKey === 'h') {
         enemy.velocity.x = -5
         enemy.switchSprite('run')
-    } else if (keys.k.pressed && lastKey === 'k') {
+    } else if (keys.k.pressed && enemy.lastKey === 'k') {
         enemy.velocity.x = 5
         enemy.switchSprite('run')
     } else {
         enemy.switchSprite('idle')
     }
 
-// jumping
-if(enemy.velocity.y < 0){
-    enemy.switchSprite('jump')
-} else if (enemy.velocity.y > 0){
-    enemy.switchSprite('fall')
-}
+    // jumping
+    if(enemy.velocity.y < 0){
+        enemy.switchSprite('jump')
+    } else if (enemy.velocity.y > 0){
+        enemy.switchSprite('fall')
+    }
 
     // detect for collision
-
     if (rectangularCollision({
         rectangle1: player,
         rectangle2: enemy
@@ -261,10 +252,10 @@ if(enemy.velocity.y < 0){
         })
     }
 
-// if enemy misses
+    // if enemy misses
     if(enemy.isAttacking && enemy.frameCurrent === 2){
         enemy.isAttacking = false
-}
+    }
 
     if (enemy.health <= 0 || player.health <= 0) {
         determineWinner({player, enemy, timerId})
@@ -290,18 +281,17 @@ window.addEventListener('keydown', (event) => {
         case ' ':
             player.attack()
             break     
-
-        // Second Controls
     }}
+
     if (!enemy.dead){
     switch (event.key){
         case 'h':
             keys.h.pressed = true
-            lastKey = 'h'
+            enemy.lastKey = 'h'
             break
         case 'k':
             keys.k.pressed = true
-            lastKey = 'k'
+            enemy.lastKey = 'k'
             break
         case 'u':
             enemy.velocity.y = -15
@@ -310,8 +300,6 @@ window.addEventListener('keydown', (event) => {
             enemy.attack()
             break   
     }}
-    
-
 })
 
 window.addEventListener('keyup', (event) => {

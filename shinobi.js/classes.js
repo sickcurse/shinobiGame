@@ -80,12 +80,9 @@ class Fighter extends Sprite {
         for (const sprite in sprites) {
             sprites[sprite].image = new Image()
             sprites[sprite].image.src = sprites[sprite].imageSrc
-
         }
         
     }
-
-
 
     update() {
         this.draw()
@@ -109,6 +106,7 @@ class Fighter extends Sprite {
             this.position.y = 330
         } else this.velocity.y += gravity
     }
+
     attack(){
         this.switchSprite('attack1')
         this.isAttacking = true 
@@ -125,25 +123,17 @@ class Fighter extends Sprite {
     switchSprite(sprite){
 
         if (this.image === this.sprites.death.image) {
-            if (this.frameCurrent === this.sprites.death.frameMax -1 )
+            if (this.frameCurrent === this.sprites.death.frameMax - 1)
             this.dead = true
-            return}
+            return
+        }
+
         // overrides all other animations
-        if(this.image === this.sprites.attack1.image &&  this.frameCurrent < this.sprites.attack1.frameMax -1)
-             return
+        if(this.image === this.sprites.attack1.image && this.frameCurrent < this.sprites.attack1.frameMax - 1)
+            return
 
-             if(this.image === this.sprites.attack1.image &&
-                this.frameCurrent < this.sprites.attack1.frameMax - 1)
-                return
-
-
-
-                if(this.image === this.sprites.takeHit.image &&
-                    this.frameCurrent < this.sprites.takeHit.frameMax -1)
-
-                    return
-
-
+        if(this.image === this.sprites.takeHit.image && this.frameCurrent < this.sprites.takeHit.frameMax - 1)
+            return
 
         switch (sprite){
             case 'idle':
@@ -195,6 +185,6 @@ class Fighter extends Sprite {
                 this.frameCurrent = 0
                 }
                 break
-    }
+        }
     }
 }
