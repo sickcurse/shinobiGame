@@ -44,8 +44,24 @@ class Sprite {
 }
 
 
+class Platform {
+    constructor({ x, y, width, height }) {
+        this.x = x
+        this.y = y
+        this.width = width
+        this.height = height
+    }
+
+    draw() {
+        c.fillStyle = '#5c4033'
+        c.fillRect(this.x, this.y, this.width, this.height)
+        c.fillStyle = '#8b6914'
+        c.fillRect(this.x, this.y, this.width, 4)
+    }
+}
+
 class Fighter extends Sprite {
-    constructor({position, velocity, color = 'red',  imageSrc, scale = 1, frameMax = 1, offset = {x: 0, y: 0}, sprites, attackBox = { offset:{}, width: undefined, height: undefined}}) {
+    constructor({position, velocity, color = 'red',  imageSrc, scale = 1, frameMax = 1, offset = {x: 0, y: 0}, sprites, attackBox = { offset:{}, width: undefined, height: undefined}, facing = 'right', healthBarWidth = 80}) {
         super({
             position,
             imageSrc,
@@ -78,6 +94,8 @@ class Fighter extends Sprite {
         this.dead = false
         this._aiCooldown = 0
         this._aiJumpTimer = 0
+        this.facing = facing
+        this.healthBarWidth = healthBarWidth
 
         for (const sprite in sprites) {
             sprites[sprite].image = new Image()
@@ -86,8 +104,55 @@ class Fighter extends Sprite {
         
     }
 
+    draw() {
+        const frameWidth = this.image.width / this.frameMax
+        const drawWidth = frameWidth * this.scale
+        const drawHeight = this.image.height * this.scale
+        const drawX = this.position.x - this.offset.x
+        const drawY = this.position.y - this.offset.y
+
+        c.save()
+        if (this.facing === 'left') {
+            c.translate(drawX + drawWidth, drawY)
+            c.scale(-1, 1)
+            c.drawImage(
+                this.image,
+                this.frameCurrent * frameWidth,
+                0,
+                frameWidth,
+                this.image.height,
+                0,
+                0,
+                drawWidth,
+                drawHeight
+            )
+        } else {
+            c.drawImage(
+                this.image,
+                this.frameCurrent * frameWidth,
+                0,
+                frameWidth,
+                this.image.height,
+                drawX,
+                drawY,
+                drawWidth,
+                drawHeight
+            )
+        }
+        c.restore()
+    }
+
+    getAttackOffsetX() {
+        const { x: ox } = this.attackBox.offset
+        const w = this.attackBox.width
+        if (this.facing === 'right') {
+            return ox >= 0 ? ox : -ox - w
+        }
+        return ox >= 0 ? -ox - w : ox
+    }
+
     drawHealthBar() {
-        const barWidth = 80
+        const barWidth = this.healthBarWidth
         const barHeight = 8
         const x = this.position.x + this.width / 2 - barWidth / 2
         const y = this.position.y - 25
@@ -111,23 +176,41 @@ class Fighter extends Sprite {
         this.drawHealthBar()
         if (!this.dead) this.animateFrames()
       
-        this.attackBox.position.x = this.position.x + this.attackBox.offset.x
+        this.attackBox.position.x = this.position.x + this.getAttackOffsetX()
         this.attackBox.position.y = this.position.y + this.attackBox.offset.y
 
-        // c.fillRect(
-        //     this.attackBox.position.x, 
-        //     this.attackBox.position.y,
-        //     this.attackBox.width,
-        //     this.attackBox.height)
-
         this.position.x += this.velocity.x
-        this.position.y += this.velocity.y 
 
-        // gravity
-        if (this.position.y + this.height + this.velocity.y >= canvas.height - 96) {
+        const floorY = canvas.height - 96
+        const prevBottom = this.position.y + this.height
+        this.position.y += this.velocity.y
+        const currBottom = this.position.y + this.height
+
+        let landed = false
+
+        if (this.velocity.y >= 0 && typeof platforms !== 'undefined') {
+            for (const platform of platforms) {
+                const onPlatform =
+                    currBottom >= platform.y &&
+                    prevBottom <= platform.y &&
+                    this.position.x + this.width > platform.x &&
+                    this.position.x < platform.x + platform.width
+
+                if (onPlatform) {
+                    this.position.y = platform.y - this.height
+                    this.velocity.y = 0
+                    landed = true
+                    break
+                }
+            }
+        }
+
+        if (!landed && this.position.y + this.height >= floorY) {
             this.velocity.y = 0
-            this.position.y = 330
-        } else this.velocity.y += gravity
+            this.position.y = floorY - this.height
+        } else if (!landed) {
+            this.velocity.y += gravity
+        }
     }
 
     attack(){
@@ -221,8 +304,10 @@ class Fighter extends Sprite {
 
         if (dist > 120) {
             this.velocity.x = dx > 0 ? 7 : -7
+            this.facing = dx > 0 ? 'right' : 'left'
             this.switchSprite('run')
         } else {
+            this.facing = dx > 0 ? 'right' : 'left'
             this.switchSprite('idle')
         }
 

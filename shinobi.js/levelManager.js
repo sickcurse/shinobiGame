@@ -7,14 +7,14 @@ const levelConfigs = {
     1: {
         name: 'The Dojo',
         background: { imageSrc: './img/background.png' },
-        shop: { imageSrc: './img/shop.png', x: 600, y: 128, scale: 2.75, frameMax: 6 },
+        shop: { imageSrc: './img/shop.png', x: 600, y: 128, scale: 2.2, frameMax: 6 },
         timeLimit: 60,
         player: {
             position: { x: 0, y: 0 },
             velocity: { x: 0, y: 0 },
             imageSrc: './img/samuraiMack/Idle.png',
             frameMax: 8,
-            scale: 2.5,
+            scale: 2,
             offset: { x: 215, y: 157 },
             sprites: {
                 idle:    { imageSrc: './img/samuraiMack/Idle.png',                        frameMax: 8 },
@@ -34,7 +34,7 @@ const levelConfigs = {
                 color: 'blue',
                 imageSrc: './img/kenji/Idle.png',
                 frameMax: 4,
-                scale: 2.5,
+                scale: 2,
                 offset: { x: 215, y: 167 },
                 sprites: {
                     idle:    { imageSrc: './img/kenji/Idle.png',    frameMax: 4 },
@@ -53,14 +53,14 @@ const levelConfigs = {
     2: {
         name: 'The Rooftop',
         background: { imageSrc: './img/background.png' },
-        shop:       { imageSrc: './img/shop.png', x: 600, y: 128, scale: 2.75, frameMax: 6 },
+        shop:       { imageSrc: './img/shop.png', x: 600, y: 128, scale: 2.2, frameMax: 6 },
         timeLimit: 45,
         player: {
             position: { x: 0, y: 0 },
             velocity: { x: 0, y: 0 },
             imageSrc: './img/samuraiMack/Idle.png',
             frameMax: 8,
-            scale: 2.5,
+            scale: 2,
             offset: { x: 215, y: 157 },
             sprites: {
                 idle:    { imageSrc: './img/samuraiMack/Idle.png',                        frameMax: 8 },
@@ -80,7 +80,7 @@ const levelConfigs = {
                 color: 'blue',
                 imageSrc: './img/kenji/Idle.png',
                 frameMax: 4,
-                scale: 2.5,
+                scale: 2,
                 offset: { x: 215, y: 167 },
                 sprites: {
                     idle:    { imageSrc: './img/kenji/Idle.png',    frameMax: 4 },
@@ -99,14 +99,17 @@ const levelConfigs = {
     3: {
         name: 'The Shrine',
         background: { imageSrc: './img/background.png' },
-        shop:       { imageSrc: './img/shop.png', x: 600, y: 128, scale: 2.75, frameMax: 6 },
+        shop:       { imageSrc: './img/shop.png', x: 600, y: 128, scale: 2.2, frameMax: 6 },
         timeLimit: 30,
+        platforms: [
+            { x: 350, y: 250, width: 320, height: 20 }
+        ],
         player: {
             position: { x: 0, y: 0 },
             velocity: { x: 0, y: 0 },
             imageSrc: './img/samuraiMack/Idle.png',
             frameMax: 8,
-            scale: 2.5,
+            scale: 2,
             offset: { x: 215, y: 157 },
             sprites: {
                 idle:    { imageSrc: './img/samuraiMack/Idle.png',                        frameMax: 8 },
@@ -126,7 +129,7 @@ const levelConfigs = {
                 color: 'blue',
                 imageSrc: './img/kenji/Idle.png',
                 frameMax: 4,
-                scale: 2.5,
+                scale: 2,
                 offset: { x: 215, y: 167 },
                 sprites: {
                     idle:    { imageSrc: './img/kenji/Idle.png',    frameMax: 4 },
@@ -145,7 +148,7 @@ const levelConfigs = {
                 color: 'blue',
                 imageSrc: './img/kenji/Idle.png',
                 frameMax: 4,
-                scale: 2.5,
+                scale: 2,
                 offset: { x: 215, y: 167 },
                 sprites: {
                     idle:    { imageSrc: './img/kenji/Idle.png',    frameMax: 4 },
@@ -164,7 +167,7 @@ const levelConfigs = {
                 color: 'blue',
                 imageSrc: './img/kenji/Idle.png',
                 frameMax: 4,
-                scale: 2.5,
+                scale: 2,
                 offset: { x: 215, y: 167 },
                 sprites: {
                     idle:    { imageSrc: './img/kenji/Idle.png',    frameMax: 4 },

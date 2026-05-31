@@ -9,7 +9,7 @@ c.fillRect(0, 0, canvas.width, canvas.height)
 const gravity = 1.0
 
 // ── State ────────────────────────────────
-let background, shop, player, enemies
+let background, shop, player, enemies, platforms = []
 let roundOver = false
 let gameActive = false
 
@@ -61,12 +61,14 @@ function loadLevel(config) {
         frameMax: config.shop.frameMax
     })
 
-    player = new Fighter(config.player)
+    player = new Fighter({ ...config.player, healthBarWidth: 140 })
     enemies = config.enemies.map((cfg, i) => {
-        const e = new Fighter(cfg)
+        const e = new Fighter({ ...cfg, facing: 'left' })
         e._aiCooldown = i * 20
         return e
     })
+
+    platforms = (config.platforms || []).map(p => new Platform(p))
 
     const displayText = document.querySelector('#displayText')
 
@@ -114,6 +116,8 @@ function animate() {
     c.fillStyle = 'rgba(255, 255, 255, 0.17)'
     c.fillRect(0, 0, canvas.width, canvas.height)
 
+    for (const platform of platforms) platform.draw()
+
     player.update()
     for (const e of enemies) e.update()
 
@@ -122,9 +126,11 @@ function animate() {
     // ── Player movement ──
     if (keys.a.pressed && player.lastKey === 'a') {
         player.velocity.x = -7
+        player.facing = 'left'
         player.switchSprite('run')
     } else if (keys.d.pressed && player.lastKey === 'd') {
         player.velocity.x = 7
+        player.facing = 'right'
         player.switchSprite('run')
     } else {
         player.switchSprite('idle')
