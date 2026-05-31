@@ -9,7 +9,7 @@ class Sprite {
         this.frameMax = frameMax
         this.frameCurrent = 0
         this.framesElapsed = 0
-        this.framesHold = 5
+        this.framesHold = 4
         this.offset = offset
     }
     
@@ -73,7 +73,7 @@ class Fighter extends Sprite {
         this.health = 100
         this.frameCurrent = 0
         this.framesElapsed = 0
-        this.framesHold = 6
+        this.framesHold = 4
         this.sprites = sprites
         this.dead = false
 
@@ -84,8 +84,29 @@ class Fighter extends Sprite {
         
     }
 
+    drawHealthBar() {
+        const barWidth = 80
+        const barHeight = 8
+        const x = this.position.x + this.width / 2 - barWidth / 2
+        const y = this.position.y - 25
+
+        // outline
+        c.fillStyle = 'rgba(0, 0, 0, 0.6)'
+        c.fillRect(x - 2, y - 2, barWidth + 4, barHeight + 4)
+
+        // empty track
+        c.fillStyle = '#7f1d1d'
+        c.fillRect(x, y, barWidth, barHeight)
+
+        // filled portion
+        const fillWidth = Math.max(0, (this.health / 100) * barWidth)
+        c.fillStyle = this.color === 'blue' ? '#4ade80' : '#818CF8'
+        c.fillRect(x, y, fillWidth, barHeight)
+    }
+
     update() {
         this.draw()
+        this.drawHealthBar()
         if (!this.dead) this.animateFrames()
       
         this.attackBox.position.x = this.position.x + this.attackBox.offset.x
