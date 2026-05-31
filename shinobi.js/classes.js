@@ -76,6 +76,8 @@ class Fighter extends Sprite {
         this.framesHold = 4
         this.sprites = sprites
         this.dead = false
+        this._aiCooldown = 0
+        this._aiJumpTimer = 0
 
         for (const sprite in sprites) {
             sprites[sprite].image = new Image()
@@ -206,6 +208,42 @@ class Fighter extends Sprite {
                 this.frameCurrent = 0
                 }
                 break
+        }
+    }
+
+    updateAI(target) {
+        if (this.dead) return
+
+        const dx = target.position.x - this.position.x
+        const dist = Math.abs(dx)
+
+        this.velocity.x = 0
+
+        if (dist > 120) {
+            this.velocity.x = dx > 0 ? 7 : -7
+            this.switchSprite('run')
+        } else {
+            this.switchSprite('idle')
+        }
+
+        if (this.velocity.y < 0) {
+            this.switchSprite('jump')
+        } else if (this.velocity.y > 0) {
+            this.switchSprite('fall')
+        }
+
+        if (this._aiCooldown > 0) this._aiCooldown--
+
+        if (dist < 160 && !this.isAttacking && this._aiCooldown <= 0) {
+            this.attack()
+            this._aiCooldown = 45 + Math.floor(Math.random() * 30)
+        }
+
+        if (this._aiJumpTimer > 0) this._aiJumpTimer--
+
+        if (this.position.y >= 329 && this._aiJumpTimer <= 0 && Math.random() < 0.008) {
+            this.velocity.y = -18
+            this._aiJumpTimer = 120
         }
     }
 }

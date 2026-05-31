@@ -9,16 +9,14 @@ c.fillRect(0, 0, canvas.width, canvas.height)
 const gravity = 1.0
 
 // ── State ────────────────────────────────
-let background, shop, player, enemy
+let background, shop, player, enemies
 let roundOver = false
 let gameActive = false
 
 // ── Keys ─────────────────────────────────
 const keys = {
     a: { pressed: false },
-    d: { pressed: false },
-    h: { pressed: false },
-    k: { pressed: false }
+    d: { pressed: false }
 }
 
 // ── Menu ─────────────────────────────────
@@ -50,8 +48,6 @@ function loadLevel(config) {
 
     keys.a.pressed = false
     keys.d.pressed = false
-    keys.h.pressed = false
-    keys.k.pressed = false
 
     background = new Sprite({
         position: { x: 0, y: 0 },
@@ -66,7 +62,11 @@ function loadLevel(config) {
     })
 
     player = new Fighter(config.player)
-    enemy = new Fighter(config.enemy)
+    enemies = config.enemies.map((cfg, i) => {
+        const e = new Fighter(cfg)
+        e._aiCooldown = i * 20
+        return e
+    })
 
     const displayText = document.querySelector('#displayText')
 
@@ -88,16 +88,14 @@ function onRoundEnd() {
 
     clearTimeout(timerId)
 
-    if (
-        enemy.health <= 0 &&
-        player.health > 0 &&
-        levelManager.hasNextLevel()
-    ) {
+    const allDead = enemies.every(e => e.health <= 0)
+
+    if (allDead && player.health > 0 && levelManager.hasNextLevel()) {
         levelManager.nextLevel((nextConfig) => {
             loadLevel(nextConfig)
         })
     } else {
-        determineWinner({ player, enemy, timerId })
+        determineWinner({ player, enemies, timerId })
     }
 }
 
@@ -117,10 +115,9 @@ function animate() {
     c.fillRect(0, 0, canvas.width, canvas.height)
 
     player.update()
-    enemy.update()
+    for (const e of enemies) e.update()
 
     player.velocity.x = 0
-    enemy.velocity.x = 0
 
     // ── Player movement ──
     if (keys.a.pressed && player.lastKey === 'a') {
@@ -139,62 +136,35 @@ function animate() {
         player.switchSprite('fall')
     }
 
-    // ── Enemy movement ──
-    if (keys.h.pressed && enemy.lastKey === 'h') {
-        enemy.velocity.x = -7
-        enemy.switchSprite('run')
-    } else if (keys.k.pressed && enemy.lastKey === 'k') {
-        enemy.velocity.x = 7
-        enemy.switchSprite('run')
-    } else {
-        enemy.switchSprite('idle')
+    // ── AI update ──
+    for (const e of enemies) {
+        if (!e.dead) e.updateAI(player)
     }
 
-    if (enemy.velocity.y < 0) {
-        enemy.switchSprite('jump')
-    } else if (enemy.velocity.y > 0) {
-        enemy.switchSprite('fall')
-    }
-
-    // ── Collision: player hits enemy ──
-    if (
-        rectangularCollision({
-            rectangle1: player,
-            rectangle2: enemy
-        }) &&
-        player.isAttacking &&
-        player.frameCurrent === 4
-    ) {
-        enemy.takeHit()
-
-        player.isAttacking = false
-    }
-
+    // ── Collision: player hits an enemy ──
     if (player.isAttacking && player.frameCurrent === 4) {
+        for (const e of enemies) {
+            if (rectangularCollision({ rectangle1: player, rectangle2: e })) {
+                e.takeHit()
+            }
+        }
         player.isAttacking = false
     }
 
-    // ── Collision: enemy hits player ──
-    if (
-        rectangularCollision({
-            rectangle1: enemy,
-            rectangle2: player
-        }) &&
-        enemy.isAttacking &&
-        enemy.frameCurrent === 2
-    ) {
-        enemy.isAttacking = false
-
-        player.takeHit()
-    }
-
-    if (enemy.isAttacking && enemy.frameCurrent === 2) {
-        enemy.isAttacking = false
+    // ── Collision: each enemy hits player ──
+    for (const e of enemies) {
+        if (e.isAttacking && e.frameCurrent === 2) {
+            if (rectangularCollision({ rectangle1: e, rectangle2: player })) {
+                player.takeHit()
+            }
+            e.isAttacking = false
+        }
     }
 
     // ── Check round over ──
     if (!roundOver && !levelManager.transitioning) {
-        if (enemy.health <= 0 || player.health <= 0) {
+        const allDead = enemies.every(e => e.health <= 0)
+        if (allDead || player.health <= 0) {
             onRoundEnd()
         }
     }
@@ -247,28 +217,6 @@ window.addEventListener('keydown', (event) => {
         }
     }
 
-    // ENEMY
-    if (!enemy.dead) {
-        switch (event.key) {
-            case 'h':
-                keys.h.pressed = true
-                enemy.lastKey = 'h'
-                break
-
-            case 'k':
-                keys.k.pressed = true
-                enemy.lastKey = 'k'
-                break
-
-            case 'u':
-                enemy.velocity.y = -18
-                break
-
-            case 'n':
-                enemy.attack()
-                break
-        }
-    }
 })
 
 window.addEventListener('keyup', (event) => {
@@ -282,14 +230,6 @@ window.addEventListener('keyup', (event) => {
 
         case 'a':
             keys.a.pressed = false
-            break
-
-        case 'h':
-            keys.h.pressed = false
-            break
-
-        case 'k':
-            keys.k.pressed = false
             break
     }
 })

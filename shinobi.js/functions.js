@@ -7,17 +7,20 @@ function rectangularCollision({ rectangle1, rectangle2 }) {
     )
 }
 
-function determineWinner({ player, enemy, timerId }) {
+function determineWinner({ player, enemies, timerId }) {
     clearTimeout(timerId)
     const displayText = document.querySelector('#displayText')
     displayText.style.display = 'flex'
 
-    if (player.health === enemy.health) {
-        displayText.innerHTML = 'Tie'
-    } else if (player.health > enemy.health) {
-        displayText.innerHTML = 'Player 1 Wins'
+    const maxEnemyHealth = Math.max(...enemies.map(e => e.health))
+    const hint = '<div id="restartHint">press R for main menu</div>'
+
+    if (player.health === maxEnemyHealth) {
+        displayText.innerHTML = 'Tie' + hint
+    } else if (player.health > maxEnemyHealth) {
+        displayText.innerHTML = 'Player Wins' + hint
     } else {
-        displayText.innerHTML = 'Player 2 Wins'
+        displayText.innerHTML = 'Enemies Win' + hint
     }
 }
 

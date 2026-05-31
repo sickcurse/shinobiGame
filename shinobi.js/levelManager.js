@@ -27,35 +27,34 @@ const levelConfigs = {
             },
             attackBox: { offset: { x: 100, y: 60 }, width: 160, height: 50 }
         },
-        enemy: {
-            position: { x: 400, y: 100 },
-            velocity: { x: 0, y: 0 },
-            color: 'blue',
-            imageSrc: './img/kenji/Idle.png',
-            frameMax: 4,
-            scale: 2.5,
-            offset: { x: 215, y: 167 },
-            sprites: {
-                idle:    { imageSrc: './img/kenji/Idle.png',      frameMax: 4 },
-                run:     { imageSrc: './img/kenji/Run.png',        frameMax: 8 },
-                jump:    { imageSrc: './img/kenji/Jump.png',       frameMax: 2 },
-                fall:    { imageSrc: './img/kenji/Fall.png',       frameMax: 2 },
-                attack1: { imageSrc: './img/kenji/Attack1.png',    frameMax: 4 },
-                takeHit: { imageSrc: './img/kenji/Take Hit.png',   frameMax: 3 },
-                death:   { imageSrc: './img/kenji/Death.png',      frameMax: 7 }
-            },
-            attackBox: { offset: { x: -170, y: 50 }, width: 170, height: 50 }
-        }
+        enemies: [
+            {
+                position: { x: 400, y: 100 },
+                velocity: { x: 0, y: 0 },
+                color: 'blue',
+                imageSrc: './img/kenji/Idle.png',
+                frameMax: 4,
+                scale: 2.5,
+                offset: { x: 215, y: 167 },
+                sprites: {
+                    idle:    { imageSrc: './img/kenji/Idle.png',    frameMax: 4 },
+                    run:     { imageSrc: './img/kenji/Run.png',     frameMax: 8 },
+                    jump:    { imageSrc: './img/kenji/Jump.png',    frameMax: 2 },
+                    fall:    { imageSrc: './img/kenji/Fall.png',    frameMax: 2 },
+                    attack1: { imageSrc: './img/kenji/Attack1.png', frameMax: 4 },
+                    takeHit: { imageSrc: './img/kenji/Take Hit.png',frameMax: 3 },
+                    death:   { imageSrc: './img/kenji/Death.png',   frameMax: 7 }
+                },
+                attackBox: { offset: { x: -170, y: 50 }, width: 170, height: 50 }
+            }
+        ]
     },
 
-    // ── Level 2 placeholder ──────────────────
-    // Swap in new imageSrc paths when you have assets.
-    // Everything else (positions, attackBox, timeLimit) can be tuned per level.
     2: {
         name: 'The Rooftop',
-        background: { imageSrc: './img/background.png' },   // replace with rooftop bg
+        background: { imageSrc: './img/background.png' },
         shop:       { imageSrc: './img/shop.png', x: 600, y: 128, scale: 2.75, frameMax: 6 },
-        timeLimit: 45,                                        // tighter time limit
+        timeLimit: 45,
         player: {
             position: { x: 0, y: 0 },
             velocity: { x: 0, y: 0 },
@@ -74,33 +73,34 @@ const levelConfigs = {
             },
             attackBox: { offset: { x: 100, y: 60 }, width: 160, height: 50 }
         },
-        enemy: {
-            position: { x: 400, y: 100 },
-            velocity: { x: 0, y: 0 },
-            color: 'blue',
-            imageSrc: './img/kenji/Idle.png',           // replace with new enemy sprites
-            frameMax: 4,
-            scale: 2.5,
-            offset: { x: 215, y: 167 },
-            sprites: {
-                idle:    { imageSrc: './img/kenji/Idle.png',      frameMax: 4 },
-                run:     { imageSrc: './img/kenji/Run.png',        frameMax: 8 },
-                jump:    { imageSrc: './img/kenji/Jump.png',       frameMax: 2 },
-                fall:    { imageSrc: './img/kenji/Fall.png',       frameMax: 2 },
-                attack1: { imageSrc: './img/kenji/Attack1.png',    frameMax: 4 },
-                takeHit: { imageSrc: './img/kenji/Take Hit.png',   frameMax: 3 },
-                death:   { imageSrc: './img/kenji/Death.png',      frameMax: 7 }
-            },
-            attackBox: { offset: { x: -170, y: 50 }, width: 170, height: 50 }
-        }
+        enemies: [
+            {
+                position: { x: 500, y: 0 },
+                velocity: { x: 0, y: 0 },
+                color: 'blue',
+                imageSrc: './img/kenji/Idle.png',
+                frameMax: 4,
+                scale: 2.5,
+                offset: { x: 215, y: 167 },
+                sprites: {
+                    idle:    { imageSrc: './img/kenji/Idle.png',    frameMax: 4 },
+                    run:     { imageSrc: './img/kenji/Run.png',     frameMax: 8 },
+                    jump:    { imageSrc: './img/kenji/Jump.png',    frameMax: 2 },
+                    fall:    { imageSrc: './img/kenji/Fall.png',    frameMax: 2 },
+                    attack1: { imageSrc: './img/kenji/Attack1.png', frameMax: 4 },
+                    takeHit: { imageSrc: './img/kenji/Take Hit.png',frameMax: 3 },
+                    death:   { imageSrc: './img/kenji/Death.png',   frameMax: 7 }
+                },
+                attackBox: { offset: { x: -170, y: 50 }, width: 170, height: 50 }
+            }
+        ]
     },
 
-    // ── Level 3 placeholder ──────────────────
     3: {
         name: 'The Shrine',
-        background: { imageSrc: './img/background.png' },   // replace with shrine bg
+        background: { imageSrc: './img/background.png' },
         shop:       { imageSrc: './img/shop.png', x: 600, y: 128, scale: 2.75, frameMax: 6 },
-        timeLimit: 30,                                        // hardest - least time
+        timeLimit: 30,
         player: {
             position: { x: 0, y: 0 },
             velocity: { x: 0, y: 0 },
@@ -119,25 +119,65 @@ const levelConfigs = {
             },
             attackBox: { offset: { x: 100, y: 60 }, width: 160, height: 50 }
         },
-        enemy: {
-            position: { x: 400, y: 100 },
-            velocity: { x: 0, y: 0 },
-            color: 'blue',
-            imageSrc: './img/kenji/Idle.png',
-            frameMax: 4,
-            scale: 2.5,
-            offset: { x: 215, y: 167 },
-            sprites: {
-                idle:    { imageSrc: './img/kenji/Idle.png',      frameMax: 4 },
-                run:     { imageSrc: './img/kenji/Run.png',        frameMax: 8 },
-                jump:    { imageSrc: './img/kenji/Jump.png',       frameMax: 2 },
-                fall:    { imageSrc: './img/kenji/Fall.png',       frameMax: 2 },
-                attack1: { imageSrc: './img/kenji/Attack1.png',    frameMax: 4 },
-                takeHit: { imageSrc: './img/kenji/Take Hit.png',   frameMax: 3 },
-                death:   { imageSrc: './img/kenji/Death.png',      frameMax: 7 }
+        enemies: [
+            {
+                position: { x: 200, y: 0 },
+                velocity: { x: 0, y: 0 },
+                color: 'blue',
+                imageSrc: './img/kenji/Idle.png',
+                frameMax: 4,
+                scale: 2.5,
+                offset: { x: 215, y: 167 },
+                sprites: {
+                    idle:    { imageSrc: './img/kenji/Idle.png',    frameMax: 4 },
+                    run:     { imageSrc: './img/kenji/Run.png',     frameMax: 8 },
+                    jump:    { imageSrc: './img/kenji/Jump.png',    frameMax: 2 },
+                    fall:    { imageSrc: './img/kenji/Fall.png',    frameMax: 2 },
+                    attack1: { imageSrc: './img/kenji/Attack1.png', frameMax: 4 },
+                    takeHit: { imageSrc: './img/kenji/Take Hit.png',frameMax: 3 },
+                    death:   { imageSrc: './img/kenji/Death.png',   frameMax: 7 }
+                },
+                attackBox: { offset: { x: -170, y: 50 }, width: 170, height: 50 }
             },
-            attackBox: { offset: { x: -170, y: 50 }, width: 170, height: 50 }
-        }
+            {
+                position: { x: 500, y: 0 },
+                velocity: { x: 0, y: 0 },
+                color: 'blue',
+                imageSrc: './img/kenji/Idle.png',
+                frameMax: 4,
+                scale: 2.5,
+                offset: { x: 215, y: 167 },
+                sprites: {
+                    idle:    { imageSrc: './img/kenji/Idle.png',    frameMax: 4 },
+                    run:     { imageSrc: './img/kenji/Run.png',     frameMax: 8 },
+                    jump:    { imageSrc: './img/kenji/Jump.png',    frameMax: 2 },
+                    fall:    { imageSrc: './img/kenji/Fall.png',    frameMax: 2 },
+                    attack1: { imageSrc: './img/kenji/Attack1.png', frameMax: 4 },
+                    takeHit: { imageSrc: './img/kenji/Take Hit.png',frameMax: 3 },
+                    death:   { imageSrc: './img/kenji/Death.png',   frameMax: 7 }
+                },
+                attackBox: { offset: { x: -170, y: 50 }, width: 170, height: 50 }
+            },
+            {
+                position: { x: 800, y: 0 },
+                velocity: { x: 0, y: 0 },
+                color: 'blue',
+                imageSrc: './img/kenji/Idle.png',
+                frameMax: 4,
+                scale: 2.5,
+                offset: { x: 215, y: 167 },
+                sprites: {
+                    idle:    { imageSrc: './img/kenji/Idle.png',    frameMax: 4 },
+                    run:     { imageSrc: './img/kenji/Run.png',     frameMax: 8 },
+                    jump:    { imageSrc: './img/kenji/Jump.png',    frameMax: 2 },
+                    fall:    { imageSrc: './img/kenji/Fall.png',    frameMax: 2 },
+                    attack1: { imageSrc: './img/kenji/Attack1.png', frameMax: 4 },
+                    takeHit: { imageSrc: './img/kenji/Take Hit.png',frameMax: 3 },
+                    death:   { imageSrc: './img/kenji/Death.png',   frameMax: 7 }
+                },
+                attackBox: { offset: { x: -170, y: 50 }, width: 170, height: 50 }
+            }
+        ]
     }
 }
 
