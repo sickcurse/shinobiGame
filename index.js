@@ -12,6 +12,7 @@ const gravity = 1.0
 let background, shop, player, enemies, platforms = []
 let roundOver = false
 let gameActive = false
+let score = 0
 
 // ── Keys ─────────────────────────────────
 const keys = {
@@ -32,8 +33,10 @@ function showMenu() {
 
 function startGame() {
     document.getElementById('mainMenu').style.display = 'none'
+    document.getElementById('endGame').style.display = 'none'
 
     gameActive = true
+    score = 0
 
     levelManager.reset()
 
@@ -46,7 +49,15 @@ function restartGame() {
     clearTimeout(timerId)
     levelManager.transitioning = false
     levelManager.reset()
+    score = 0
     loadLevel(levelManager.getConfig())
+}
+
+function showEndGame() {
+    gameActive = false
+    clearTimeout(timerId)
+    document.getElementById('endScore').textContent = score + ' pts'
+    document.getElementById('endGame').style.display = 'flex'
 }
 
 // ── Load a level from a config object ────
@@ -120,6 +131,8 @@ function onRoundEnd() {
         levelManager.nextLevel((nextConfig) => {
             loadLevel(nextConfig)
         })
+    } else if (allDead && player.health > 0) {
+        showEndGame()
     } else {
         determineWinner({ player, enemies, timerId })
     }
@@ -172,10 +185,13 @@ function animate() {
     }
 
     // ── Collision: player hits an enemy ──
-    if (player.isAttacking && player.frameCurrent === 4) {
+    if (player.isAttacking && player.image === player.sprites.attack1.image && player.frameCurrent === 4) {
         for (const e of enemies) {
-            if (rectangularCollision({ rectangle1: player, rectangle2: e })) {
+            if (!e.dead && rectangularCollision({ rectangle1: player, rectangle2: e })) {
+                const dmg = Math.min(player.hitDamage, Math.max(0, e.health))
                 e.takeHit(player.hitDamage)
+                score += dmg
+                document.getElementById('score').textContent = score + ' pts'
             }
         }
         player.isAttacking = false
@@ -183,7 +199,7 @@ function animate() {
 
     // ── Collision: each enemy hits player ──
     for (const e of enemies) {
-        if (e.isAttacking && e.frameCurrent === 2) {
+        if (e.isAttacking && e.image === e.sprites.attack1.image && e.frameCurrent === 2) {
             if (rectangularCollision({ rectangle1: e, rectangle2: player })) {
                 player.takeHit(e.hitDamage)
             }
@@ -214,6 +230,13 @@ window.addEventListener('keydown', (event) => {
     // R → restart during game, or return to menu from end screen
     if (event.key === 'r' || event.key === 'R') {
         const displayText = document.querySelector('#displayText')
+        const endGame = document.getElementById('endGame')
+
+        if (endGame.style.display === 'flex') {
+            endGame.style.display = 'none'
+            showMenu()
+            return
+        }
 
         if (displayText.style.display === 'flex') {
             showMenu()

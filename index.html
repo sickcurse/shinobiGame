@@ -147,6 +147,60 @@
             letter-spacing: 2px;
         }
 
+        /* ───────── END GAME OVERLAY ───────── */
+
+        #endGame {
+            display: none;
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            background: rgba(0, 0, 0, 0.92);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            gap: 20px;
+        }
+
+        #endTitle {
+            font-size: 28px;
+            color: #818CF8;
+            letter-spacing: 6px;
+            text-shadow: 0 0 20px #818CF8, 0 0 40px #818CF8;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        #endScore {
+            font-size: 14px;
+            color: white;
+            letter-spacing: 4px;
+        }
+
+        #endScoreLabel {
+            font-size: 7px;
+            color: rgba(255,255,255,0.45);
+            letter-spacing: 3px;
+        }
+
+        #endHint {
+            font-size: 8px;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 2px;
+            animation: blink 1.2s step-end infinite;
+            margin-top: 8px;
+        }
+
+        /* ───────── HUD SCORE ───────── */
+
+        #score {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 9px;
+            color: rgba(255,255,255,0.75);
+            letter-spacing: 2px;
+            pointer-events: none;
+        }
+
         /* ───────── ANIMATIONS ───────── */
 
         @keyframes blink {
@@ -233,6 +287,10 @@
 
         </div>
 
+        <!-- IN-GAME SCORE -->
+
+        <div id="score">0 pts</div>
+
         <!-- RESULT TEXT -->
 
         <div
@@ -259,6 +317,15 @@
                 press R for main menu
             </div>
 
+        </div>
+
+        <!-- END GAME -->
+
+        <div id="endGame">
+            <div id="endTitle">VICTORY</div>
+            <div id="endScoreLabel">total score</div>
+            <div id="endScore">0 pts</div>
+            <div id="endHint">press R for main menu</div>
         </div>
 
         <!-- LEVEL TRANSITION -->

@@ -341,7 +341,7 @@ class Fighter extends Sprite {
     }
 
     updateAI(target) {
-        if (this.dead) return
+        if (this.dead || this.health <= 0) return
 
         if (this._aiThinkTimer > 0) {
             this._aiThinkTimer--

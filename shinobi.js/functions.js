@@ -45,7 +45,7 @@ function decreaseTimer(startTime) {
         }
         if (timer === 0) {
             // Time ran out — treat as round loss, no level advance
-            determineWinner({ player, enemy, timerId })
+            determineWinner({ player, enemies, timerId })
         }
     }
 
