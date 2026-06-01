@@ -1,5 +1,9 @@
+const FIGHTER_BASE_SCALE = 2.5
+const SHOP_BASE_SCALE = 2.75
+const FLOOR_Y = 576 - 96
+
 class Sprite {
-    constructor({position, imageSrc, scale = 1, frameMax = 1, offset = {x: 0, y: 0}}) {
+    constructor({position, imageSrc, scale = 1, frameMax = 1, offset = {x: 0, y: 0}, anchorBottom = false}) {
         this.position = position
         this.width = 50
         this.height = 150
@@ -11,6 +15,16 @@ class Sprite {
         this.framesElapsed = 0
         this.framesHold = 4
         this.offset = offset
+        this.anchorBottom = anchorBottom
+
+        if (anchorBottom) {
+            this.image.onload = () => this._snapToFloor()
+        }
+    }
+
+    _snapToFloor() {
+        const frameHeight = this.image.height * this.scale
+        this.position.y = FLOOR_Y - frameHeight
     }
     
     draw(){ 
@@ -61,32 +75,54 @@ class Platform {
 }
 
 class Fighter extends Sprite {
-    constructor({position, velocity, color = 'red',  imageSrc, scale = 1, frameMax = 1, offset = {x: 0, y: 0}, sprites, attackBox = { offset:{}, width: undefined, height: undefined}, facing = 'right', healthBarWidth = 80}) {
+    constructor({position, velocity, color = 'red',  imageSrc, scale = 1, frameMax = 1, offset = {x: 0, y: 0}, sprites, attackBox = { offset:{}, width: undefined, height: undefined}, facing = 'right', healthBarWidth = 80, maxHealth = 100, hitDamage = 20, aiProfile = {}, homePosition, spriteDefaultFacing = 'right'}) {
+        const layoutScale = scale / FIGHTER_BASE_SCALE
+        const scaledOffset = {
+            x: offset.x * layoutScale,
+            y: offset.y * layoutScale
+        }
+
         super({
             position,
             imageSrc,
             scale,
             frameMax,
-            offset
+            offset: scaledOffset
         })
         
         this.position = position
         this.velocity = velocity
-        this.width = 50
-        this.height = 150
+        this.width = 50 * layoutScale
+        this.height = 150 * layoutScale
         this.lastKey 
         this.attackBox = {
             position: {
                 x: this.position.x, 
                 y: this.position.y
             },
-            offset: attackBox.offset,
-            width: attackBox.width, 
-            height: attackBox.height
+            offset: {
+                x: attackBox.offset.x * layoutScale,
+                y: attackBox.offset.y * layoutScale
+            },
+            width: attackBox.width * layoutScale, 
+            height: attackBox.height * layoutScale
         },    
         this.color = color
         this.isAttacking
-        this.health = 100
+        this.maxHealth = maxHealth
+        this.health = maxHealth
+        this.hitDamage = hitDamage
+        this.aiProfile = {
+            moveSpeed: aiProfile.moveSpeed ?? 5,
+            chaseDistance: aiProfile.chaseDistance ?? 140,
+            attackRange: aiProfile.attackRange ?? 110,
+            attackCooldownMin: aiProfile.attackCooldownMin ?? 70,
+            attackCooldownMax: aiProfile.attackCooldownMax ?? 110,
+            thinkInterval: aiProfile.thinkInterval ?? 4,
+            jumpChance: aiProfile.jumpChance ?? 0.003,
+            wakeDistance: aiProfile.wakeDistance ?? 220,
+            homeRadius: aiProfile.homeRadius ?? 12
+        }
         this.frameCurrent = 0
         this.framesElapsed = 0
         this.framesHold = 4
@@ -94,7 +130,10 @@ class Fighter extends Sprite {
         this.dead = false
         this._aiCooldown = 0
         this._aiJumpTimer = 0
+        this._aiThinkTimer = 0
         this.facing = facing
+        this.spriteDefaultFacing = spriteDefaultFacing
+        this.homePosition = homePosition ? { ...homePosition } : { x: position.x, y: position.y }
         this.healthBarWidth = healthBarWidth
 
         for (const sprite in sprites) {
@@ -102,6 +141,13 @@ class Fighter extends Sprite {
             sprites[sprite].image.src = sprites[sprite].imageSrc
         }
         
+    }
+
+    shouldFlipSprite() {
+        if (this.spriteDefaultFacing === 'left') {
+            return this.facing === 'right'
+        }
+        return this.facing === 'left'
     }
 
     draw() {
@@ -112,7 +158,7 @@ class Fighter extends Sprite {
         const drawY = this.position.y - this.offset.y
 
         c.save()
-        if (this.facing === 'left') {
+        if (this.shouldFlipSprite()) {
             c.translate(drawX + drawWidth, drawY)
             c.scale(-1, 1)
             c.drawImage(
@@ -166,7 +212,7 @@ class Fighter extends Sprite {
         c.fillRect(x, y, barWidth, barHeight)
 
         // filled portion
-        const fillWidth = Math.max(0, (this.health / 100) * barWidth)
+        const fillWidth = Math.max(0, (this.health / this.maxHealth) * barWidth)
         c.fillStyle = this.color === 'blue' ? '#4ade80' : '#818CF8'
         c.fillRect(x, y, fillWidth, barHeight)
     }
@@ -218,8 +264,8 @@ class Fighter extends Sprite {
         this.isAttacking = true 
     }
 
-    takeHit(){
-        this.health -= 20
+    takeHit(damage = 20){
+        this.health -= damage
 
         if (this.health <= 0) {
             this.switchSprite('death')
@@ -297,13 +343,33 @@ class Fighter extends Sprite {
     updateAI(target) {
         if (this.dead) return
 
+        if (this._aiThinkTimer > 0) {
+            this._aiThinkTimer--
+            return
+        }
+
+        this._aiThinkTimer = this.aiProfile.thinkInterval
+
         const dx = target.position.x - this.position.x
         const dist = Math.abs(dx)
+        const profile = this.aiProfile
+        const awake = dist <= profile.wakeDistance
 
         this.velocity.x = 0
 
-        if (dist > 120) {
-            this.velocity.x = dx > 0 ? 7 : -7
+        if (!awake) {
+            const homeDx = this.homePosition.x - this.position.x
+
+            if (Math.abs(homeDx) > profile.homeRadius) {
+                this.velocity.x = homeDx > 0 ? profile.moveSpeed * 0.55 : -profile.moveSpeed * 0.55
+                this.facing = homeDx > 0 ? 'right' : 'left'
+                this.switchSprite('run')
+            } else {
+                this.facing = this.homePosition.x < canvas.width / 2 ? 'left' : 'right'
+                this.switchSprite('idle')
+            }
+        } else if (dist > profile.chaseDistance) {
+            this.velocity.x = dx > 0 ? profile.moveSpeed : -profile.moveSpeed
             this.facing = dx > 0 ? 'right' : 'left'
             this.switchSprite('run')
         } else {
@@ -317,16 +383,19 @@ class Fighter extends Sprite {
             this.switchSprite('fall')
         }
 
+        if (!awake) return
+
         if (this._aiCooldown > 0) this._aiCooldown--
 
-        if (dist < 160 && !this.isAttacking && this._aiCooldown <= 0) {
+        if (dist < profile.attackRange && !this.isAttacking && this._aiCooldown <= 0) {
             this.attack()
-            this._aiCooldown = 45 + Math.floor(Math.random() * 30)
+            this._aiCooldown = profile.attackCooldownMin + Math.floor(Math.random() * (profile.attackCooldownMax - profile.attackCooldownMin))
         }
 
         if (this._aiJumpTimer > 0) this._aiJumpTimer--
 
-        if (this.position.y >= 329 && this._aiJumpTimer <= 0 && Math.random() < 0.008) {
+        const floorY = canvas.height - 96
+        if (this.position.y >= floorY - this.height - 1 && this._aiJumpTimer <= 0 && Math.random() < profile.jumpChance) {
             this.velocity.y = -18
             this._aiJumpTimer = 120
         }

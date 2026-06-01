@@ -40,6 +40,15 @@ function startGame() {
     loadLevel(levelManager.getConfig())
 }
 
+function restartGame() {
+    if (!gameActive) return
+
+    clearTimeout(timerId)
+    levelManager.transitioning = false
+    levelManager.reset()
+    loadLevel(levelManager.getConfig())
+}
+
 // ── Load a level from a config object ────
 function loadLevel(config) {
     roundOver = false
@@ -55,15 +64,30 @@ function loadLevel(config) {
     })
 
     shop = new Sprite({
-        position: { x: config.shop.x, y: config.shop.y },
+        position: {
+            x: config.shop.x * (config.shop.scale / SHOP_BASE_SCALE),
+            y: config.shop.y
+        },
         imageSrc: config.shop.imageSrc,
         scale: config.shop.scale,
-        frameMax: config.shop.frameMax
+        frameMax: config.shop.frameMax,
+        anchorBottom: true
     })
 
     player = new Fighter({ ...config.player, healthBarWidth: 140 })
     enemies = config.enemies.map((cfg, i) => {
-        const e = new Fighter({ ...cfg, facing: 'left' })
+        const defaults = config.enemyDefaults || {}
+        const e = new Fighter({
+            ...defaults,
+            ...cfg,
+            aiProfile: {
+                ...(defaults.aiProfile || {}),
+                ...(cfg.aiProfile || {})
+            },
+            homePosition: cfg.homePosition ?? { x: cfg.position.x, y: cfg.position.y },
+            spriteDefaultFacing: cfg.spriteDefaultFacing ?? 'left',
+            facing: cfg.facing ?? 'left'
+        })
         e._aiCooldown = i * 20
         return e
     })
@@ -151,7 +175,7 @@ function animate() {
     if (player.isAttacking && player.frameCurrent === 4) {
         for (const e of enemies) {
             if (rectangularCollision({ rectangle1: player, rectangle2: e })) {
-                e.takeHit()
+                e.takeHit(player.hitDamage)
             }
         }
         player.isAttacking = false
@@ -161,7 +185,7 @@ function animate() {
     for (const e of enemies) {
         if (e.isAttacking && e.frameCurrent === 2) {
             if (rectangularCollision({ rectangle1: e, rectangle2: player })) {
-                player.takeHit()
+                player.takeHit(e.hitDamage)
             }
             e.isAttacking = false
         }
@@ -187,12 +211,17 @@ window.addEventListener('keydown', (event) => {
         }
     }
 
-    // R → return to menu
+    // R → restart during game, or return to menu from end screen
     if (event.key === 'r' || event.key === 'R') {
         const displayText = document.querySelector('#displayText')
 
         if (displayText.style.display === 'flex') {
             showMenu()
+            return
+        }
+
+        if (gameActive) {
+            restartGame()
             return
         }
     }

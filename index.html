@@ -14,6 +14,29 @@
             background: black;
         }
 
+        #gameViewport {
+            position: relative;
+            display: inline-block;
+        }
+
+        #gameViewport canvas {
+            display: block;
+            filter: sepia(0.45) saturate(1.25) hue-rotate(8deg) brightness(1.06) contrast(1.04);
+        }
+
+        #gameViewport::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            pointer-events: none;
+            background: rgba(255, 196, 80, 0.12);
+            mix-blend-mode: soft-light;
+            z-index: 5;
+        }
+
         /* ───────── MAIN MENU ───────── */
 
         #mainMenu {
@@ -154,7 +177,7 @@
 
 <body>
 
-    <div style="position: relative; display: inline-block;">
+    <div id="gameViewport">
 
         <!-- MAIN MENU -->
 
@@ -173,6 +196,8 @@
             <div id="menuControls">
                 <span>PLAYER</span>
                 &nbsp; A / D move &nbsp; W jump &nbsp; SPACE attack
+                <br>
+                <span>R</span> restart during game
             </div>
 
             <div id="menuPrompt">

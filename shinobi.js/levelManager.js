@@ -3,6 +3,34 @@
 //  Handles level configs, loading, and transitions
 // ─────────────────────────────────────────
 
+const kenjiSprites = {
+    idle:    { imageSrc: './img/kenji/Idle.png',    frameMax: 4 },
+    run:     { imageSrc: './img/kenji/Run.png',     frameMax: 8 },
+    jump:    { imageSrc: './img/kenji/Jump.png',    frameMax: 2 },
+    fall:    { imageSrc: './img/kenji/Fall.png',    frameMax: 2 },
+    attack1: { imageSrc: './img/kenji/Attack1.png', frameMax: 4 },
+    takeHit: { imageSrc: './img/kenji/Take Hit.png',frameMax: 3 },
+    death:   { imageSrc: './img/kenji/Death.png',   frameMax: 7 }
+}
+
+function kenjiAt(x, extras = {}) {
+    return {
+        position: { x, y: 0 },
+        homePosition: { x, y: 0 },
+        velocity: { x: 0, y: 0 },
+        color: 'blue',
+        imageSrc: './img/kenji/Idle.png',
+        frameMax: 4,
+        scale: 2,
+        offset: { x: 215, y: 167 },
+        spriteDefaultFacing: 'left',
+        facing: 'left',
+        sprites: kenjiSprites,
+        attackBox: { offset: { x: -170, y: 50 }, width: 170, height: 50 },
+        ...extras
+    }
+}
+
 const levelConfigs = {
     1: {
         name: 'The Dojo',
@@ -28,25 +56,7 @@ const levelConfigs = {
             attackBox: { offset: { x: 100, y: 60 }, width: 160, height: 50 }
         },
         enemies: [
-            {
-                position: { x: 400, y: 100 },
-                velocity: { x: 0, y: 0 },
-                color: 'blue',
-                imageSrc: './img/kenji/Idle.png',
-                frameMax: 4,
-                scale: 2,
-                offset: { x: 215, y: 167 },
-                sprites: {
-                    idle:    { imageSrc: './img/kenji/Idle.png',    frameMax: 4 },
-                    run:     { imageSrc: './img/kenji/Run.png',     frameMax: 8 },
-                    jump:    { imageSrc: './img/kenji/Jump.png',    frameMax: 2 },
-                    fall:    { imageSrc: './img/kenji/Fall.png',    frameMax: 2 },
-                    attack1: { imageSrc: './img/kenji/Attack1.png', frameMax: 4 },
-                    takeHit: { imageSrc: './img/kenji/Take Hit.png',frameMax: 3 },
-                    death:   { imageSrc: './img/kenji/Death.png',   frameMax: 7 }
-                },
-                attackBox: { offset: { x: -170, y: 50 }, width: 170, height: 50 }
-            }
+            kenjiAt(400, { aiProfile: { thinkInterval: 5, attackRange: 105, wakeDistance: 210 } })
         ]
     },
 
@@ -74,25 +84,8 @@ const levelConfigs = {
             attackBox: { offset: { x: 100, y: 60 }, width: 160, height: 50 }
         },
         enemies: [
-            {
-                position: { x: 500, y: 0 },
-                velocity: { x: 0, y: 0 },
-                color: 'blue',
-                imageSrc: './img/kenji/Idle.png',
-                frameMax: 4,
-                scale: 2,
-                offset: { x: 215, y: 167 },
-                sprites: {
-                    idle:    { imageSrc: './img/kenji/Idle.png',    frameMax: 4 },
-                    run:     { imageSrc: './img/kenji/Run.png',     frameMax: 8 },
-                    jump:    { imageSrc: './img/kenji/Jump.png',    frameMax: 2 },
-                    fall:    { imageSrc: './img/kenji/Fall.png',    frameMax: 2 },
-                    attack1: { imageSrc: './img/kenji/Attack1.png', frameMax: 4 },
-                    takeHit: { imageSrc: './img/kenji/Take Hit.png',frameMax: 3 },
-                    death:   { imageSrc: './img/kenji/Death.png',   frameMax: 7 }
-                },
-                attackBox: { offset: { x: -170, y: 50 }, width: 170, height: 50 }
-            }
+            kenjiAt(280, { aiProfile: { thinkInterval: 5, attackRange: 105, wakeDistance: 210 } }),
+            kenjiAt(720, { aiProfile: { thinkInterval: 5, attackRange: 105, wakeDistance: 210 } })
         ]
     },
 
@@ -104,6 +97,18 @@ const levelConfigs = {
         platforms: [
             { x: 350, y: 250, width: 320, height: 20 }
         ],
+        enemyDefaults: {
+            maxHealth: 60,
+            hitDamage: 12,
+            aiProfile: {
+                moveSpeed: 4,
+                attackRange: 95,
+                attackCooldownMin: 90,
+                attackCooldownMax: 140,
+                thinkInterval: 6,
+                jumpChance: 0.002
+            }
+        },
         player: {
             position: { x: 0, y: 0 },
             velocity: { x: 0, y: 0 },
@@ -123,63 +128,9 @@ const levelConfigs = {
             attackBox: { offset: { x: 100, y: 60 }, width: 160, height: 50 }
         },
         enemies: [
-            {
-                position: { x: 200, y: 0 },
-                velocity: { x: 0, y: 0 },
-                color: 'blue',
-                imageSrc: './img/kenji/Idle.png',
-                frameMax: 4,
-                scale: 2,
-                offset: { x: 215, y: 167 },
-                sprites: {
-                    idle:    { imageSrc: './img/kenji/Idle.png',    frameMax: 4 },
-                    run:     { imageSrc: './img/kenji/Run.png',     frameMax: 8 },
-                    jump:    { imageSrc: './img/kenji/Jump.png',    frameMax: 2 },
-                    fall:    { imageSrc: './img/kenji/Fall.png',    frameMax: 2 },
-                    attack1: { imageSrc: './img/kenji/Attack1.png', frameMax: 4 },
-                    takeHit: { imageSrc: './img/kenji/Take Hit.png',frameMax: 3 },
-                    death:   { imageSrc: './img/kenji/Death.png',   frameMax: 7 }
-                },
-                attackBox: { offset: { x: -170, y: 50 }, width: 170, height: 50 }
-            },
-            {
-                position: { x: 500, y: 0 },
-                velocity: { x: 0, y: 0 },
-                color: 'blue',
-                imageSrc: './img/kenji/Idle.png',
-                frameMax: 4,
-                scale: 2,
-                offset: { x: 215, y: 167 },
-                sprites: {
-                    idle:    { imageSrc: './img/kenji/Idle.png',    frameMax: 4 },
-                    run:     { imageSrc: './img/kenji/Run.png',     frameMax: 8 },
-                    jump:    { imageSrc: './img/kenji/Jump.png',    frameMax: 2 },
-                    fall:    { imageSrc: './img/kenji/Fall.png',    frameMax: 2 },
-                    attack1: { imageSrc: './img/kenji/Attack1.png', frameMax: 4 },
-                    takeHit: { imageSrc: './img/kenji/Take Hit.png',frameMax: 3 },
-                    death:   { imageSrc: './img/kenji/Death.png',   frameMax: 7 }
-                },
-                attackBox: { offset: { x: -170, y: 50 }, width: 170, height: 50 }
-            },
-            {
-                position: { x: 800, y: 0 },
-                velocity: { x: 0, y: 0 },
-                color: 'blue',
-                imageSrc: './img/kenji/Idle.png',
-                frameMax: 4,
-                scale: 2,
-                offset: { x: 215, y: 167 },
-                sprites: {
-                    idle:    { imageSrc: './img/kenji/Idle.png',    frameMax: 4 },
-                    run:     { imageSrc: './img/kenji/Run.png',     frameMax: 8 },
-                    jump:    { imageSrc: './img/kenji/Jump.png',    frameMax: 2 },
-                    fall:    { imageSrc: './img/kenji/Fall.png',    frameMax: 2 },
-                    attack1: { imageSrc: './img/kenji/Attack1.png', frameMax: 4 },
-                    takeHit: { imageSrc: './img/kenji/Take Hit.png',frameMax: 3 },
-                    death:   { imageSrc: './img/kenji/Death.png',   frameMax: 7 }
-                },
-                attackBox: { offset: { x: -170, y: 50 }, width: 170, height: 50 }
-            }
+            kenjiAt(200, { aiProfile: { wakeDistance: 200 } }),
+            kenjiAt(500, { aiProfile: { wakeDistance: 200 } }),
+            kenjiAt(800, { aiProfile: { wakeDistance: 200 } })
         ]
     }
 }
