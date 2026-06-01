@@ -1,0 +1,67 @@
+.gate {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.name {
+    font-size: 10px;
+    color: #4ade80;
+    letter-spacing: 3px;
+}
+
+.controls {
+    font-size: 7px;
+    color: rgba(255,255,255,0.45);
+    line-height: 2.4;
+    text-align: center;
+    letter-spacing: 1px;
+}
+.controls span { color: #818CF8; }
+
+.prompt {
+    font-size: 10px;
+    color: white;
+    letter-spacing: 3px;
+    cursor: pointer;
+    animation: blink 1.2s step-end infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
+}
+
+.actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.lbBtn {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.55);
+    cursor: pointer;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 7px;
+    letter-spacing: 2px;
+    padding: 10px 20px;
+    transition: border-color 0.15s, color 0.15s;
+}
+.lbBtn:hover { border-color: rgba(255,255,255,0.5); color: white; }
+
+.logoutBtn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.25);
+    cursor: pointer;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 6px;
+    letter-spacing: 1px;
+    padding: 4px;
+    text-decoration: underline;
+}
+.logoutBtn:hover { color: rgba(255,255,255,0.5); }

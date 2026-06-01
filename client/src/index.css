@@ -1,0 +1,12 @@
+* {
+    box-sizing: border-box;
+    font-family: 'Press Start 2P', cursive;
+}
+
+body {
+    margin: 0;
+    background: black;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}

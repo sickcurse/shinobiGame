@@ -1,0 +1,89 @@
+.gate {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    width: 260px;
+}
+
+.tabs { display: flex; }
+
+.tab {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: rgba(255,255,255,0.35);
+    cursor: pointer;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 7px;
+    letter-spacing: 2px;
+    padding: 8px 18px;
+    transition: color 0.15s, border-color 0.15s;
+}
+.tab.active  { border-bottom-color: #818CF8; color: #818CF8; }
+.tab:hover:not(.active) { color: rgba(255,255,255,0.6); }
+
+.fields {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.input {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: white;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 7px;
+    letter-spacing: 1px;
+    outline: none;
+    padding: 12px 14px;
+    width: 100%;
+    transition: border-color 0.15s;
+}
+.input:focus { border-color: #818CF8; }
+.input::placeholder { color: rgba(255,255,255,0.2); }
+
+.error {
+    color: #f87171;
+    font-size: 6px;
+    letter-spacing: 1px;
+    min-height: 14px;
+    text-align: center;
+}
+
+.btn {
+    background: #818CF8;
+    border: none;
+    color: #000;
+    cursor: pointer;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 8px;
+    letter-spacing: 2px;
+    padding: 12px;
+    width: 100%;
+    transition: background 0.15s;
+}
+.btn:hover:not(:disabled) { background: #a5b4fc; }
+.btn:disabled { opacity: 0.5; cursor: default; }
+
+.or {
+    color: rgba(255,255,255,0.2);
+    font-size: 7px;
+    letter-spacing: 2px;
+}
+
+.guestBtn {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.55);
+    cursor: pointer;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 7px;
+    letter-spacing: 2px;
+    padding: 10px 20px;
+    transition: border-color 0.15s, color 0.15s;
+}
+.guestBtn:hover { border-color: rgba(255,255,255,0.5); color: white; }

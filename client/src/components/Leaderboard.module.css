@@ -1,0 +1,87 @@
+.backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 30;
+}
+
+.panel {
+    background: rgba(0,0,0,0.96);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 32px;
+    width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.title {
+    font-size: 14px;
+    color: #818CF8;
+    letter-spacing: 4px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.tabs {
+    display: flex;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 12px;
+}
+
+.tab {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: rgba(255,255,255,0.35);
+    cursor: pointer;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 7px;
+    letter-spacing: 2px;
+    padding: 10px 18px;
+    margin-bottom: -1px;
+}
+.tab.active { border-bottom-color: #818CF8; color: #818CF8; }
+
+.content { min-height: 200px; }
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    font-size: 7px;
+}
+
+.rank   { color: rgba(255,255,255,0.3); width: 28px; flex-shrink: 0; }
+.player { color: white; flex: 1; }
+.score  { color: #818CF8; width: 70px; text-align: right; }
+.level  { color: rgba(255,255,255,0.4); width: 40px; text-align: right; }
+.date   { color: rgba(255,255,255,0.3); flex: 1; font-size: 6px; }
+
+.empty {
+    color: rgba(255,255,255,0.25);
+    font-size: 7px;
+    letter-spacing: 2px;
+    padding: 40px 0;
+    text-align: center;
+}
+
+.close {
+    align-self: center;
+    margin-top: 20px;
+    background: none;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.55);
+    cursor: pointer;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 7px;
+    letter-spacing: 2px;
+    padding: 10px 20px;
+    transition: border-color 0.15s, color 0.15s;
+}
+.close:hover { border-color: rgba(255,255,255,0.5); color: white; }

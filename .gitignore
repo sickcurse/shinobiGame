@@ -1,2 +1,4 @@
 server/node_modules
 server/shinobi.db
+client/node_modules
+client/dist
