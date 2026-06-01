@@ -22,7 +22,7 @@ if (prod) {
     res.sendFile(path.join(__dirname, '../client/dist/index.html'))
   })
 }
-
+console.log('Serving static from:', clientDist)
 const PORT = process.env.PORT || 3000
 
 init()
