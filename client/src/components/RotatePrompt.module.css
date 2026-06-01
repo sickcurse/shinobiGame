@@ -1,0 +1,39 @@
+.overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: black;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+}
+
+/* Show only on touch devices in portrait orientation */
+@media (hover: none) and (pointer: coarse) and (orientation: portrait) {
+    .overlay { display: flex; }
+}
+
+.icon {
+    font-size: 64px;
+    color: #818CF8;
+    animation: spin 2s ease-in-out infinite;
+    display: inline-block;
+}
+
+@keyframes spin {
+    0%   { transform: rotate(0deg); }
+    40%  { transform: rotate(-90deg); }
+    60%  { transform: rotate(-90deg); }
+    100% { transform: rotate(0deg); }
+}
+
+.msg {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.55);
+    letter-spacing: 2px;
+    text-align: center;
+    line-height: 2;
+}

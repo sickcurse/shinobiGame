@@ -8,6 +8,7 @@ import EndScreen        from './components/EndScreen.jsx'
 import EndGame          from './components/EndGame.jsx'
 import Leaderboard      from './components/Leaderboard.jsx'
 import MobileControls   from './components/MobileControls.jsx'
+import RotatePrompt     from './components/RotatePrompt.jsx'
 
 // phase: 'menu' | 'playing' | 'gameover' | 'victory'
 
@@ -149,6 +150,9 @@ export default function App() {
                     hasAccount={!!auth.token}
                 />
             )}
+
+            {/* Portrait nudge — CSS shows this only on touch + portrait */}
+            <RotatePrompt />
         </div>
     )
 }
