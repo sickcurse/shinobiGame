@@ -7,6 +7,7 @@ import LevelTransition  from './components/LevelTransition.jsx'
 import EndScreen        from './components/EndScreen.jsx'
 import EndGame          from './components/EndGame.jsx'
 import Leaderboard      from './components/Leaderboard.jsx'
+import MobileControls   from './components/MobileControls.jsx'
 
 // phase: 'menu' | 'playing' | 'gameover' | 'victory'
 
@@ -105,6 +106,9 @@ export default function App() {
 
             {/* HUD — visible while playing */}
             {phase === 'playing' && <HUD timer={timer} score={score} />}
+
+            {/* Mobile touch controls — only renders on touch devices via CSS */}
+            {phase === 'playing' && <MobileControls />}
 
             {/* Level transition */}
             {transition && <LevelTransition level={transition.level} name={transition.name} />}

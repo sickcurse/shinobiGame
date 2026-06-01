@@ -206,3 +206,25 @@ export function onKeyUp(e) {
     if (e.key === 'd') keys.d.pressed = false
     if (e.key === 'a') keys.a.pressed = false
 }
+
+// ── Touch / mobile input ──────────────────────────────────────────────────────
+export function pressKey(key) {
+    if (!gameActive || !player || player.dead) return
+    if (key === 'a') { keys.a.pressed = true; player.lastKey = 'a' }
+    if (key === 'd') { keys.d.pressed = true; player.lastKey = 'd' }
+}
+
+export function releaseKey(key) {
+    if (key === 'a') keys.a.pressed = false
+    if (key === 'd') keys.d.pressed = false
+}
+
+export function touchJump() {
+    if (!gameActive || !player || player.dead) return
+    player.velocity.y = -18
+}
+
+export function touchAttack() {
+    if (!gameActive || !player || player.dead) return
+    player.attack()
+}
