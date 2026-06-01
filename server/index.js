@@ -10,7 +10,7 @@ app.use(cors())
 app.use(express.json())
 
 if (prod) {
-  const clientDist = path.join(__dirname, '../clie../client/dist')
+  const clientDist = path.join(__dirname, '../client/dist')
   app.use(express.static(clientDist))
 }
 
@@ -19,7 +19,7 @@ app.use('/api/scores', require('./routes/scores'))
 
 if (prod) {
   app.get('*', (_req, res) => {
-    res.sendFile(path.join(__dirname, '../clie../client/dist/index.html'))
+    res.sendFile(path.join(__dirname, '../client/dist/index.html'))
   })
 }
 
