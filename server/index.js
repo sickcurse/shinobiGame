@@ -11,18 +11,17 @@ app.use(express.json())
 
 if (prod) {
   const clientDist = path.join(__dirname, '../client/dist')
+  console.log('Serving static from:', clientDist)
   app.use(express.static(clientDist))
+
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(__dirname, '../client/dist/index.html'))
+  })
 }
 
 app.use('/api/auth',   require('./routes/auth'))
 app.use('/api/scores', require('./routes/scores'))
 
-if (prod) {
-  app.get('*', (_req, res) => {
-    res.sendFile(path.join(__dirname, '../client/dist/index.html'))
-  })
-}
-console.log('Serving static from:', clientDist)
 const PORT = process.env.PORT || 3000
 
 init()
