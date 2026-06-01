@@ -27,63 +27,206 @@
         #gameViewport::after {
             content: '';
             position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
+            top: 0; right: 0; bottom: 0; left: 0;
             pointer-events: none;
             background: rgba(255, 196, 80, 0.12);
             mix-blend-mode: soft-light;
             z-index: 5;
         }
 
+        /* ───────── SHARED OVERLAY BASE ───────── */
+
+        .overlay {
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            background: rgba(0, 0, 0, 0.92);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            gap: 18px;
+        }
+
         /* ───────── MAIN MENU ───────── */
 
         #mainMenu {
             display: flex;
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-
-            background: rgba(0, 0, 0, 0.92);
-
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-
-            z-index: 20;
-            gap: 24px;
         }
 
         #menuTitle {
             font-size: 32px;
             color: #818CF8;
             letter-spacing: 6px;
-
-            text-shadow:
-                0 0 20px #818CF8,
-                0 0 40px #818CF8;
-
+            text-shadow: 0 0 20px #818CF8, 0 0 40px #818CF8;
             animation: pulse 2s ease-in-out infinite;
         }
 
         #menuSubtitle {
             font-size: 9px;
-            color: rgba(255,255,255,0.55);
+            color: rgba(255,255,255,0.45);
             letter-spacing: 3px;
         }
 
         #menuDivider {
             width: 60%;
             border: none;
-            border-top: 1px solid rgba(255,255,255,0.15);
+            border-top: 1px solid rgba(255,255,255,0.12);
+            margin: 0;
+        }
+
+        /* ───────── AUTH GATE ───────── */
+
+        #authGate {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            width: 260px;
+        }
+
+        #authTabs {
+            display: flex;
+            gap: 0;
+        }
+
+        .authTab {
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: rgba(255,255,255,0.35);
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 7px;
+            letter-spacing: 2px;
+            padding: 8px 18px;
+            transition: color 0.15s, border-color 0.15s;
+        }
+
+        .authTab.active {
+            border-bottom-color: #818CF8;
+            color: #818CF8;
+        }
+
+        .authTab:hover:not(.active) {
+            color: rgba(255,255,255,0.6);
+        }
+
+        #authFields {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .authInput {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: white;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 7px;
+            letter-spacing: 1px;
+            outline: none;
+            padding: 12px 14px;
+            width: 100%;
+            transition: border-color 0.15s;
+        }
+
+        .authInput:focus {
+            border-color: #818CF8;
+        }
+
+        .authInput::placeholder {
+            color: rgba(255,255,255,0.2);
+        }
+
+        #authError {
+            color: #f87171;
+            font-size: 6px;
+            letter-spacing: 1px;
+            min-height: 14px;
+            text-align: center;
+        }
+
+        .authBtn {
+            background: #818CF8;
+            border: none;
+            color: #000;
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            letter-spacing: 2px;
+            padding: 12px;
+            width: 100%;
+            transition: background 0.15s;
+        }
+
+        .authBtn:hover:not(:disabled) {
+            background: #a5b4fc;
+        }
+
+        .authBtn:disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+
+        .authBtnSecondary {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.55);
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 7px;
+            letter-spacing: 2px;
+            padding: 10px 20px;
+            transition: border-color 0.15s, color 0.15s;
+        }
+
+        .authBtnSecondary:hover {
+            border-color: rgba(255,255,255,0.5);
+            color: white;
+        }
+
+        .authBtnGhost {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.25);
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 6px;
+            letter-spacing: 1px;
+            padding: 4px;
+            text-decoration: underline;
+        }
+
+        .authBtnGhost:hover {
+            color: rgba(255,255,255,0.5);
+        }
+
+        #authOr {
+            color: rgba(255,255,255,0.2);
+            font-size: 7px;
+            letter-spacing: 2px;
+        }
+
+        /* ───────── PLAY GATE ───────── */
+
+        #playGate {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        #playGateName {
+            font-size: 10px;
+            color: #4ade80;
+            letter-spacing: 3px;
         }
 
         #menuControls {
             font-size: 7px;
-            color: rgba(255,255,255,0.5);
+            color: rgba(255,255,255,0.45);
             line-height: 2.4;
             text-align: center;
             letter-spacing: 1px;
@@ -97,8 +240,93 @@
             font-size: 10px;
             color: white;
             letter-spacing: 3px;
-
             animation: blink 1.2s step-end infinite;
+        }
+
+        #playGateActions {
+            display: flex;
+            gap: 12px;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ───────── LEADERBOARD OVERLAY ───────── */
+
+        #leaderboard {
+            display: none;
+            z-index: 30;
+            gap: 0;
+        }
+
+        #lbInner {
+            display: flex;
+            flex-direction: column;
+            width: 480px;
+            gap: 0;
+        }
+
+        #lbTitle {
+            font-size: 14px;
+            color: #818CF8;
+            letter-spacing: 4px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        #lbTabs {
+            display: flex;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 12px;
+        }
+
+        .lbTab {
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: rgba(255,255,255,0.35);
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 7px;
+            letter-spacing: 2px;
+            padding: 10px 18px;
+            margin-bottom: -1px;
+        }
+
+        .lbTab.active {
+            border-bottom-color: #818CF8;
+            color: #818CF8;
+        }
+
+        #lbContent {
+            min-height: 200px;
+        }
+
+        .lbRow {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            font-size: 7px;
+        }
+
+        .lbRank   { color: rgba(255,255,255,0.3); width: 28px; flex-shrink: 0; }
+        .lbPlayer { color: white; flex: 1; }
+        .lbScore  { color: #818CF8; width: 70px; text-align: right; }
+        .lbLevel  { color: rgba(255,255,255,0.4); width: 40px; text-align: right; }
+        .lbDate   { color: rgba(255,255,255,0.3); flex: 1; font-size: 6px; }
+
+        .lbEmpty {
+            color: rgba(255,255,255,0.25);
+            font-size: 7px;
+            letter-spacing: 2px;
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        #lbClose {
+            margin-top: 20px;
+            align-self: center;
         }
 
         /* ───────── LEVEL TRANSITION ───────── */
@@ -106,22 +334,13 @@
         #levelTransition {
             display: none;
             position: absolute;
-
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-
+            top: 0; right: 0; bottom: 0; left: 0;
             background: rgba(0, 0, 0, 0.85);
-
             color: white;
-
             flex-direction: column;
             align-items: center;
             justify-content: center;
-
             z-index: 10;
-
             text-align: center;
             letter-spacing: 2px;
         }
@@ -138,27 +357,29 @@
             opacity: 0.8;
         }
 
-        /* ───────── END SCREEN ───────── */
+        /* ───────── END SCREEN (mid-run loss / tie) ───────── */
+
+        #displayText {
+            position: absolute;
+            color: white;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            top: 0; right: 0; bottom: 0; left: 0;
+            display: none;
+        }
 
         #restartHint {
             font-size: 8px;
-            color: rgba(255, 255, 255, 0.5);
+            color: rgba(255,255,255,0.45);
             margin-top: 16px;
             letter-spacing: 2px;
         }
 
-        /* ───────── END GAME OVERLAY ───────── */
+        /* ───────── END GAME (victory) ───────── */
 
         #endGame {
             display: none;
-            position: absolute;
-            top: 0; right: 0; bottom: 0; left: 0;
-            background: rgba(0, 0, 0, 0.92);
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 20;
-            gap: 20px;
         }
 
         #endTitle {
@@ -169,24 +390,30 @@
             animation: pulse 2s ease-in-out infinite;
         }
 
+        #endScoreLabel {
+            font-size: 7px;
+            color: rgba(255,255,255,0.35);
+            letter-spacing: 3px;
+        }
+
         #endScore {
-            font-size: 14px;
+            font-size: 18px;
             color: white;
             letter-spacing: 4px;
         }
 
-        #endScoreLabel {
-            font-size: 7px;
-            color: rgba(255,255,255,0.45);
-            letter-spacing: 3px;
+        #endActions {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
         }
 
         #endHint {
-            font-size: 8px;
-            color: rgba(255,255,255,0.5);
+            font-size: 7px;
+            color: rgba(255,255,255,0.4);
             letter-spacing: 2px;
             animation: blink 1.2s step-end infinite;
-            margin-top: 8px;
+            margin-top: 4px;
         }
 
         /* ───────── HUD SCORE ───────── */
@@ -196,7 +423,7 @@
             right: 20px;
             top: 20px;
             font-size: 9px;
-            color: rgba(255,255,255,0.75);
+            color: rgba(255,255,255,0.7);
             letter-spacing: 2px;
             pointer-events: none;
         }
@@ -204,27 +431,13 @@
         /* ───────── ANIMATIONS ───────── */
 
         @keyframes blink {
-            0%, 100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0;
-            }
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0; }
         }
 
         @keyframes pulse {
-            0%, 100% {
-                text-shadow:
-                    0 0 20px #818CF8,
-                    0 0 40px #818CF8;
-            }
-
-            50% {
-                text-shadow:
-                    0 0 30px #a5b4fc,
-                    0 0 60px #818CF8;
-            }
+            0%, 100% { text-shadow: 0 0 20px #818CF8, 0 0 40px #818CF8; }
+            50%       { text-shadow: 0 0 30px #a5b4fc, 0 0 60px #818CF8; }
         }
     </style>
 </head>
@@ -234,102 +447,83 @@
     <div id="gameViewport">
 
         <!-- MAIN MENU -->
+        <div id="mainMenu" class="overlay">
 
-        <div id="mainMenu">
-
-            <div id="menuTitle">
-                SHINOBI
-            </div>
-
-            <div id="menuSubtitle">
-                1 player vs ai
-            </div>
-
+            <div id="menuTitle">SHINOBI</div>
+            <div id="menuSubtitle">1 player vs ai</div>
             <hr id="menuDivider">
 
-            <div id="menuControls">
-                <span>PLAYER</span>
-                &nbsp; A / D move &nbsp; W jump &nbsp; SPACE attack
-                <br>
-                <span>R</span> restart during game
+            <!-- AUTH GATE: shown when not logged in -->
+            <div id="authGate">
+                <div id="authTabs">
+                    <button id="tabLogin" class="authTab active">LOGIN</button>
+                    <button id="tabRegister" class="authTab">REGISTER</button>
+                </div>
+                <div id="authFields">
+                    <input id="authUsername" class="authInput" type="text"     placeholder="username" maxlength="20" autocomplete="off" spellcheck="false">
+                    <input id="authPassword" class="authInput" type="password" placeholder="password" maxlength="64">
+                    <div id="authError"></div>
+                    <button id="authSubmit" class="authBtn">LOGIN</button>
+                </div>
+                <div id="authOr">— or —</div>
+                <button id="guestBtn" class="authBtnSecondary">PLAY AS GUEST</button>
             </div>
 
-            <div id="menuPrompt">
-                press enter to start
-            </div>
-
-        </div>
-
-        <!-- HUD -->
-
-        <div style="position: absolute; display: flex; width: 100%; align-items: center; justify-content: center; padding: 20px; pointer-events: none;">
-
-            <!-- TIMER -->
-
-            <div
-                id="timer"
-                style="
-                    background-color: black;
-                    width: 100px;
-                    height: 50px;
-                    flex-shrink: 0;
-
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-
-                    color: aliceblue;
-
-                    border: 4px solid white;
-                ">
-                60
+            <!-- PLAY GATE: shown after login / register / guest -->
+            <div id="playGate">
+                <div id="playGateName">GUEST</div>
+                <div id="menuControls">
+                    <span>PLAYER</span>
+                    &nbsp; A / D move &nbsp; W jump &nbsp; SPACE attack
+                    <br>
+                    <span>R</span> restart during game
+                </div>
+                <div id="menuPrompt">press enter to play</div>
+                <div id="playGateActions">
+                    <button id="lbBtn" class="authBtnSecondary">LEADERBOARD</button>
+                    <button id="logoutBtn" class="authBtnGhost">logout / switch user</button>
+                </div>
             </div>
 
         </div>
 
         <!-- IN-GAME SCORE -->
-
         <div id="score">0 pts</div>
 
-        <!-- RESULT TEXT -->
-
-        <div
-            id="displayText"
-            style="
-                position: absolute;
-                color: white;
-
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-
-                top: 0;
-                right: 0;
-                bottom: 0;
-                left: 0;
-
-                display: none;
-            ">
-
+        <!-- RESULT TEXT (loss / tie mid-run) -->
+        <div id="displayText">
             Tie
-
-            <div id="restartHint">
-                press R for main menu
-            </div>
-
+            <div id="restartHint">press R for main menu</div>
         </div>
 
-        <!-- END GAME -->
-
-        <div id="endGame">
+        <!-- END GAME (victory) -->
+        <div id="endGame" class="overlay">
             <div id="endTitle">VICTORY</div>
             <div id="endScoreLabel">total score</div>
             <div id="endScore">0 pts</div>
+            <div id="endActions">
+                <button id="lbBtnEnd" class="authBtnSecondary">LEADERBOARD</button>
+            </div>
             <div id="endHint">press R for main menu</div>
         </div>
 
-        <!-- LEVEL TRANSITION -->
+        <!-- LEADERBOARD OVERLAY -->
+        <div id="leaderboard" class="overlay">
+            <div id="lbInner">
+                <div id="lbTitle">LEADERBOARD</div>
+                <div id="lbTabs">
+                    <button id="lbTabGlobal" class="lbTab active">GLOBAL</button>
+                    <button id="lbTabMe"     class="lbTab">MY RUNS</button>
+                </div>
+                <div id="lbContent">
+                    <div id="lbGlobal"></div>
+                    <div id="lbMyRuns" style="display:none"></div>
+                </div>
+                <button id="lbClose" class="authBtnSecondary">CLOSE</button>
+            </div>
+        </div>
 
+        <!-- LEVEL TRANSITION -->
         <div id="levelTransition">
             <div id="levelTitle">
                 Level 1
@@ -352,6 +546,7 @@
     <script src="shinobi.js/functions.js"></script>
     <script src="shinobi.js/classes.js"></script>
     <script src="shinobi.js/levelManager.js"></script>
+    <script src="shinobi.js/auth.js"></script>
     <script src="index.js"></script>
 
 </body>

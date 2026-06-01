@@ -27,7 +27,6 @@ function showMenu() {
     clearTimeout(timerId)
 
     document.getElementById('mainMenu').style.display = 'flex'
-
     document.getElementById('displayText').style.display = 'none'
 }
 
@@ -58,6 +57,7 @@ function showEndGame() {
     clearTimeout(timerId)
     document.getElementById('endScore').textContent = score + ' pts'
     document.getElementById('endGame').style.display = 'flex'
+    Auth.submitScore(score, levelManager.currentLevel)
 }
 
 // ── Load a level from a config object ────
@@ -134,6 +134,7 @@ function onRoundEnd() {
     } else if (allDead && player.health > 0) {
         showEndGame()
     } else {
+        Auth.submitScore(score, levelManager.currentLevel)
         determineWinner({ player, enemies, timerId })
     }
 }
@@ -219,9 +220,11 @@ function animate() {
 // ── Input ────────────────────────────────
 window.addEventListener('keydown', (event) => {
 
-    // ENTER → start game from menu
+    // ENTER → start game from menu (only when play gate is visible, not auth form)
     if (event.key === 'Enter') {
         if (!gameActive) {
+            const authGate = document.getElementById('authGate')
+            if (authGate && authGate.style.display !== 'none') return
             startGame()
             return
         }
@@ -293,4 +296,5 @@ window.addEventListener('keyup', (event) => {
 })
 
 // ── Boot ─────────────────────────────────
+Auth.init()
 animate()
