@@ -11,7 +11,6 @@
     z-index: 50;
 }
 
-/* Only render on touch devices */
 @media (hover: none) and (pointer: coarse) {
     .pad { display: flex; }
 }
@@ -21,6 +20,7 @@
     display: flex;
     gap: 10px;
     pointer-events: auto;
+    align-items: flex-end;
 }
 
 .dpad {
@@ -52,9 +52,8 @@
     border: 2px solid rgba(255, 255, 255, 0.28);
     border-radius: 50%;
     color: white;
-    font-size: 7px;
+    font-size: 9px;
     font-family: 'Press Start 2P', cursive;
-    letter-spacing: 0;
     cursor: pointer;
     user-select: none;
     touch-action: none;
@@ -67,15 +66,22 @@
 .jump {
     background: rgba(80, 160, 255, 0.35);
 }
+.jump:active { background: rgba(80, 160, 255, 0.65); }
 
-.jump:active {
-    background: rgba(80, 160, 255, 0.65);
+.btnA {
+    background: rgba(74, 222, 128, 0.35);
 }
+.btnA:active { background: rgba(74, 222, 128, 0.65); }
 
-.atk {
+.btnB {
     background: rgba(255, 80, 80, 0.35);
 }
+.btnB:active { background: rgba(255, 80, 80, 0.65); }
 
-.atk:active {
-    background: rgba(255, 80, 80, 0.65);
+.block {
+    background: rgba(250, 204, 21, 0.35);
+    width: 56px;
+    height: 56px;
+    font-size: 7px;
 }
+.block:active { background: rgba(250, 204, 21, 0.65); }

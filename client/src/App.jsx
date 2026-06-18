@@ -3,7 +3,7 @@ import useAuth from './hooks/useAuth.js'
 import GameCanvas       from './components/GameCanvas.jsx'
 import Menu             from './components/Menu.jsx'
 import HUD              from './components/HUD.jsx'
-import LevelTransition  from './components/LevelTransition.jsx'
+import LevelGrade       from './components/LevelGrade.jsx'
 import EndScreen        from './components/EndScreen.jsx'
 import EndGame          from './components/EndGame.jsx'
 import Leaderboard      from './components/Leaderboard.jsx'
@@ -22,8 +22,8 @@ export default function App() {
 
     const [phase,       setPhase]       = useState('menu')
     const [score,       setScore]       = useState(0)
-    const [timer,       setTimer]       = useState(60)
-    const [transition,  setTransition]  = useState(null)   // { level, name } | null
+    const [timer,       setTimer]       = useState(0)
+    const [transition,  setTransition]  = useState(null)   // { level, name, grade, done } | null
     const [gameResult,  setGameResult]  = useState(null)   // 'win'|'loss'|'tie'
     const [showLb,      setShowLb]      = useState(false)
 
@@ -52,23 +52,26 @@ export default function App() {
     // ── Game actions ──────────────────────────────────────────────────────────
     const handlePlay = useCallback(() => {
         setScore(0)
+        setTimer(0)
         engineRef.current.startGame?.()
     }, [])
 
     const handleMenu = useCallback(() => setPhase('menu'), [])
 
     // ── Engine callbacks ──────────────────────────────────────────────────────
-    const onScore  = useCallback((s) => setScore(s),  [])
-    const onTimer  = useCallback((t) => setTimer(t),  [])
-    const onPhase  = useCallback((p) => setPhase(p),  [])
+    const onScore = useCallback((s) => setScore(s), [])
+    const onTimer = useCallback((t) => setTimer(t), [])
+    const onPhase = useCallback((p) => setPhase(p), [])
 
-    const onTransition = useCallback((level, name, done) => {
-        setTransition({ level, name })
-        setTimeout(() => {
-            setTransition(null)
-            done()
-        }, 2400)
+    const onTransition = useCallback((level, name, grade, done) => {
+        setTransition({ level, name, grade, done })
     }, [])
+
+    const handleGradeContinue = useCallback(() => {
+        const done = transition?.done
+        setTransition(null)
+        done?.()
+    }, [transition])
 
     const onVictory = useCallback((finalScore) => {
         setScore(finalScore)
@@ -105,14 +108,21 @@ export default function App() {
                 background: 'rgba(255,196,80,0.12)', mixBlendMode: 'soft-light', zIndex: 5,
             }} />
 
-            {/* HUD — visible while playing */}
-            {phase === 'playing' && <HUD timer={timer} score={score} />}
+            {/* HUD — visible while playing, hidden during grade card */}
+            {phase === 'playing' && !transition && <HUD timer={timer} score={score} />}
 
-            {/* Mobile touch controls — only renders on touch devices via CSS */}
-            {phase === 'playing' && <MobileControls />}
+            {/* Mobile touch controls — hidden during grade card */}
+            {phase === 'playing' && !transition && <MobileControls />}
 
-            {/* Level transition */}
-            {transition && <LevelTransition level={transition.level} name={transition.name} />}
+            {/* Level grade card — shown between levels */}
+            {transition && (
+                <LevelGrade
+                    level={transition.level}
+                    name={transition.name}
+                    grade={transition.grade}
+                    onContinue={handleGradeContinue}
+                />
+            )}
 
             {/* Main menu */}
             {phase === 'menu' && (
@@ -127,7 +137,7 @@ export default function App() {
                 />
             )}
 
-            {/* Game over (loss / tie / time out) */}
+            {/* Game over (loss / tie) */}
             {phase === 'gameover' && (
                 <EndScreen result={gameResult} onMenu={handleMenu} />
             )}

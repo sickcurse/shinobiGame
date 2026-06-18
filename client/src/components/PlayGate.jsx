@@ -11,11 +11,13 @@ export default function PlayGate({ username, onPlay, onLogout, onLeaderboard }) 
             <div className={s.controls}>
                 {isTouch ? (
                     <>
-                        <span>◀ ▶</span> move &nbsp; <span>JUMP</span> jump &nbsp; <span>ATK</span> attack
+                        <span>◀ ▶</span> move &nbsp; <span>JUMP</span> jump &nbsp; <span>A</span> light &nbsp; <span>B</span> heavy &nbsp; <span>BLK</span> block
                     </>
                 ) : (
                     <>
-                        <span>PLAYER</span> &nbsp; A / D move &nbsp; W jump &nbsp; SPACE attack
+                        <span>A / D</span> move &nbsp; <span>W</span> jump
+                        <br />
+                        <span>J</span> light attack &nbsp; <span>K</span> heavy attack &nbsp; <span>L</span> block
                         <br />
                         <span>R</span> restart during game
                     </>

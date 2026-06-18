@@ -1,4 +1,4 @@
-import { pressKey, releaseKey, touchJump, touchAttack } from '../game/engine.js'
+import { pressKey, releaseKey, touchJump, touchLightAttack, touchHeavyAttack, touchBlockStart, touchBlockEnd } from '../game/engine.js'
 import s from './MobileControls.module.css'
 
 function makeHandlers(onPress, onRelease) {
@@ -16,10 +16,12 @@ export default function MobileControls() {
             <div className={s.left}>
                 <button className={s.dpad} {...makeHandlers(() => pressKey('a'), () => releaseKey('a'))}>◀</button>
                 <button className={s.dpad} {...makeHandlers(() => pressKey('d'), () => releaseKey('d'))}>▶</button>
+                <button className={`${s.action} ${s.block}`} {...makeHandlers(touchBlockStart, touchBlockEnd)}>BLK</button>
             </div>
             <div className={s.right}>
-                <button className={`${s.action} ${s.jump}`} {...makeHandlers(touchJump)}>JUMP</button>
-                <button className={`${s.action} ${s.atk}`}  {...makeHandlers(touchAttack)}>ATK</button>
+                <button className={`${s.action} ${s.jump}`}  {...makeHandlers(touchJump)}>JUMP</button>
+                <button className={`${s.action} ${s.btnA}`}  {...makeHandlers(touchLightAttack)}>A</button>
+                <button className={`${s.action} ${s.btnB}`}  {...makeHandlers(touchHeavyAttack)}>B</button>
             </div>
         </div>
     )
