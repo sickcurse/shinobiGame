@@ -86,8 +86,8 @@ export class Fighter extends Sprite {
 
         super({ position, imageSrc, scale, frameMax, offset: scaledOffset })
 
-        this.position  = position
-        this.velocity  = velocity
+        this.position  = { ...position }
+        this.velocity  = { ...velocity }
         this.width     = 50  * layoutScale
         this.height    = 150 * layoutScale
         this.lastKey   = null
@@ -334,33 +334,34 @@ export class Fighter extends Sprite {
 
     attack() {
         if (this.dying || this.dead) return
-        this.switchSprite('attack1')
-        this.isAttacking      = true
-        this.isAttackingLight = true
+        if (this.switchSprite('attack1')) {
+            this.isAttacking      = true
+            this.isAttackingLight = true
+        }
     }
 
     lightAttack() {
         if (this.dying || this.dead) return
-        this.switchSprite('attack1')
-        this.isAttacking      = true
-        this.isAttackingLight = true
+        if (this.switchSprite('attack1')) {
+            this.isAttacking      = true
+            this.isAttackingLight = true
+        }
     }
 
     heavyAttack() {
         if (this.dying || this.dead) return
-        if (this.sprites.attack2) {
-            this.switchSprite('attack2')
-        } else {
-            this.switchSprite('attack1')
+        const target = this.sprites.attack2 ? 'attack2' : 'attack1'
+        if (this.switchSprite(target)) {
+            this.isAttacking      = true
+            this.isAttackingHeavy = true
         }
-        this.isAttacking      = true
-        this.isAttackingHeavy = true
     }
 
     blockStart() {
         if (this.dying || this.dead || this.isAttacking) return
-        this.isBlocking = true
-        this.switchSprite('block')
+        if (this.switchSprite('block')) {
+            this.isBlocking = true
+        }
     }
 
     blockEnd() {
@@ -389,83 +390,26 @@ export class Fighter extends Sprite {
     }
 
     switchSprite(sprite) {
-        if (this.image === this.sprites.death.image) return
+        if (this.image === this.sprites.death.image) return false
 
         if (this.image === this.sprites.takeHit.image && this.frameCurrent < this.sprites.takeHit.frameMax - 1) {
-            if (sprite !== 'death') return
+            if (sprite !== 'death') return false
         }
         if (this.image === this.sprites.attack1.image && this.frameCurrent < this.sprites.attack1.frameMax - 1) {
-            if (sprite !== 'takeHit' && sprite !== 'death') return
+            if (sprite !== 'takeHit' && sprite !== 'death') return false
         }
         if (this.sprites.attack2 && this.image === this.sprites.attack2.image && this.frameCurrent < this.sprites.attack2.frameMax - 1) {
-            if (sprite !== 'takeHit' && sprite !== 'death') return
+            if (sprite !== 'takeHit' && sprite !== 'death') return false
         }
 
-        switch (sprite) {
-            case 'idle':
-                if (this.image !== this.sprites.idle.image) {
-                    this.image = this.sprites.idle.image
-                    this.frameMax = this.sprites.idle.frameMax
-                    this.frameCurrent = 0
-                }
-                break
-            case 'run':
-                if (this.image !== this.sprites.run.image) {
-                    this.image = this.sprites.run.image
-                    this.frameMax = this.sprites.run.frameMax
-                    this.frameCurrent = 0
-                }
-                break
-            case 'jump':
-                if (this.image !== this.sprites.jump.image) {
-                    this.image = this.sprites.jump.image
-                    this.frameMax = this.sprites.jump.frameMax
-                    this.frameCurrent = 0
-                }
-                break
-            case 'fall':
-                if (this.image !== this.sprites.fall.image) {
-                    this.image = this.sprites.fall.image
-                    this.frameMax = this.sprites.fall.frameMax
-                    this.frameCurrent = 0
-                }
-                break
-            case 'attack1':
-                if (this.image !== this.sprites.attack1.image) {
-                    this.image = this.sprites.attack1.image
-                    this.frameMax = this.sprites.attack1.frameMax
-                    this.frameCurrent = 0
-                }
-                break
-            case 'attack2':
-                if (this.sprites.attack2 && this.image !== this.sprites.attack2.image) {
-                    this.image = this.sprites.attack2.image
-                    this.frameMax = this.sprites.attack2.frameMax
-                    this.frameCurrent = 0
-                }
-                break
-            case 'block':
-                if (this.sprites.block && this.image !== this.sprites.block.image) {
-                    this.image = this.sprites.block.image
-                    this.frameMax = this.sprites.block.frameMax
-                    this.frameCurrent = 0
-                }
-                break
-            case 'takeHit':
-                if (this.image !== this.sprites.takeHit.image) {
-                    this.image = this.sprites.takeHit.image
-                    this.frameMax = this.sprites.takeHit.frameMax
-                    this.frameCurrent = 0
-                }
-                break
-            case 'death':
-                if (this.image !== this.sprites.death.image) {
-                    this.image = this.sprites.death.image
-                    this.frameMax = this.sprites.death.frameMax
-                    this.frameCurrent = 0
-                }
-                break
-        }
+        const def = this.sprites[sprite]
+        if (!def || this.image === def.image) return false
+
+        this.image = def.image
+        this.frameMax = def.frameMax
+        this.frameCurrent = 0
+        this.framesElapsed = 0
+        return true
     }
 
     updateAI(target) {

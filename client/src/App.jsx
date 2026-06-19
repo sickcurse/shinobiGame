@@ -3,33 +3,30 @@ import useAuth from './hooks/useAuth.js'
 import GameCanvas       from './components/GameCanvas.jsx'
 import Menu             from './components/Menu.jsx'
 import HUD              from './components/HUD.jsx'
-import LevelGrade       from './components/LevelGrade.jsx'
+import LevelTransition  from './components/LevelTransition.jsx'
 import EndScreen        from './components/EndScreen.jsx'
 import EndGame          from './components/EndGame.jsx'
 import Leaderboard      from './components/Leaderboard.jsx'
 import MobileControls   from './components/MobileControls.jsx'
-import RotatePrompt     from './components/RotatePrompt.jsx'
 
 // phase: 'menu' | 'playing' | 'gameover' | 'victory'
 
 export default function App() {
     const auth = useAuth()
 
-    // null = auth gate; string (incl. '') = play gate ('' = guest)
     const [menuUser,    setMenuUser]    = useState(() =>
         localStorage.getItem('shinobiToken') ? localStorage.getItem('shinobiUser') : null
     )
 
     const [phase,       setPhase]       = useState('menu')
     const [score,       setScore]       = useState(0)
-    const [timer,       setTimer]       = useState(0)
-    const [transition,  setTransition]  = useState(null)   // { level, name, grade, done } | null
-    const [gameResult,  setGameResult]  = useState(null)   // 'win'|'loss'|'tie'
+    const [timer,       setTimer]       = useState(60)
+    const [transition,  setTransition]  = useState(null)
+    const [gameResult,  setGameResult]  = useState(null)
     const [showLb,      setShowLb]      = useState(false)
 
     const engineRef = useRef({})
 
-    // ── Auth actions ──────────────────────────────────────────────────────────
     const handleLogin = useCallback(async (u, p) => {
         const err = await auth.login(u, p)
         if (!err) setMenuUser(u)
@@ -49,29 +46,24 @@ export default function App() {
         setMenuUser(null)
     }, [auth])
 
-    // ── Game actions ──────────────────────────────────────────────────────────
     const handlePlay = useCallback(() => {
         setScore(0)
-        setTimer(0)
         engineRef.current.startGame?.()
     }, [])
 
     const handleMenu = useCallback(() => setPhase('menu'), [])
 
-    // ── Engine callbacks ──────────────────────────────────────────────────────
-    const onScore = useCallback((s) => setScore(s), [])
-    const onTimer = useCallback((t) => setTimer(t), [])
-    const onPhase = useCallback((p) => setPhase(p), [])
+    const onScore  = useCallback((s) => setScore(s),  [])
+    const onTimer  = useCallback((t) => setTimer(t),  [])
+    const onPhase  = useCallback((p) => setPhase(p),  [])
 
-    const onTransition = useCallback((level, name, grade, done) => {
-        setTransition({ level, name, grade, done })
+    const onTransition = useCallback((level, name, done) => {
+        setTransition({ level, name })
+        setTimeout(() => {
+            setTransition(null)
+            done()
+        }, 2400)
     }, [])
-
-    const handleGradeContinue = useCallback(() => {
-        const done = transition?.done
-        setTransition(null)
-        done?.()
-    }, [transition])
 
     const onVictory = useCallback((finalScore) => {
         setScore(finalScore)
@@ -88,43 +80,51 @@ export default function App() {
     }, [auth])
 
     return (
-        <div style={{ position: 'relative', display: 'inline-block', background: 'black' }}>
-            {/* Always-visible canvas — game loop runs here */}
-            <GameCanvas
-                phase={phase}
-                onScore={onScore}
-                onTimer={onTimer}
-                onPhase={onPhase}
-                onTransition={onTransition}
-                onVictory={onVictory}
-                onGameOver={onGameOver}
-                onSubmitScore={onSubmitScore}
-                engineRef={engineRef}
-            />
-
-            {/* Amber overlay for atmosphere */}
-            <div style={{
-                position: 'absolute', inset: 0, pointerEvents: 'none',
-                background: 'rgba(255,196,80,0.12)', mixBlendMode: 'soft-light', zIndex: 5,
-            }} />
-
-            {/* HUD — visible while playing, hidden during grade card */}
-            {phase === 'playing' && !transition && <HUD timer={timer} score={score} />}
-
-            {/* Mobile touch controls — hidden during grade card */}
-            {phase === 'playing' && !transition && <MobileControls />}
-
-            {/* Level grade card — shown between levels */}
-            {transition && (
-                <LevelGrade
-                    level={transition.level}
-                    name={transition.name}
-                    grade={transition.grade}
-                    onContinue={handleGradeContinue}
+        // Full-viewport stage. Everything UI (menus, overlays, controls) is
+        // positioned against THIS, not the canvas — so it has real room to
+        // breathe and scroll regardless of how small/letterboxed the canvas
+        // renders at a given orientation.
+        <div
+            style={{
+                position: 'relative',
+                width: '100vw',
+                height: '100dvh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'black',
+                overflow: 'hidden',
+            }}
+        >
+            {/* Canvas + the overlays that are visually "painted on" the scene */}
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+                <GameCanvas
+                    phase={phase}
+                    onScore={onScore}
+                    onTimer={onTimer}
+                    onPhase={onPhase}
+                    onTransition={onTransition}
+                    onVictory={onVictory}
+                    onGameOver={onGameOver}
+                    onSubmitScore={onSubmitScore}
+                    engineRef={engineRef}
                 />
-            )}
 
-            {/* Main menu */}
+                <div style={{
+                    position: 'absolute', inset: 0, pointerEvents: 'none',
+                    background: 'rgba(255,196,80,0.12)', mixBlendMode: 'soft-light', zIndex: 5,
+                }} />
+
+                {phase === 'playing' && <HUD timer={timer} score={score} />}
+            </div>
+
+            {/* Touch controls are pinned to the physical screen edges (not the
+                canvas), so they stay thumb-reachable whether the canvas is
+                full-bleed (landscape) or letterboxed (portrait). */}
+            {phase === 'playing' && <MobileControls />}
+
+            {transition && <LevelTransition level={transition.level} name={transition.name} />}
+
             {phase === 'menu' && (
                 <Menu
                     username={menuUser}
@@ -137,12 +137,10 @@ export default function App() {
                 />
             )}
 
-            {/* Game over (loss / tie) */}
             {phase === 'gameover' && (
                 <EndScreen result={gameResult} onMenu={handleMenu} />
             )}
 
-            {/* Victory */}
             {phase === 'victory' && (
                 <EndGame
                     score={score}
@@ -151,7 +149,6 @@ export default function App() {
                 />
             )}
 
-            {/* Leaderboard modal */}
             {showLb && (
                 <Leaderboard
                     onClose={() => setShowLb(false)}
@@ -160,9 +157,6 @@ export default function App() {
                     hasAccount={!!auth.token}
                 />
             )}
-
-            {/* Portrait nudge — CSS shows this only on touch + portrait */}
-            <RotatePrompt />
         </div>
     )
 }
