@@ -17,7 +17,7 @@ export default function Menu({ username, onLogin, onRegister, onGuest, onPlay, o
 
     return (
         <div className={s.overlay}>
-            <div className={s.title}>SHINOBI</div>
+            <div className={s.title}>Butterfly Nightmare</div>
             <div className={s.subtitle}>1 player vs ai</div>
             <hr className={s.divider} />
 

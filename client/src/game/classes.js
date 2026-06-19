@@ -102,6 +102,14 @@ export class Fighter extends Sprite {
             height: attackBox.height * layoutScale,
         }
 
+        // tight block box — small square around body center
+        // updated every frame in update()
+        this.blockBox = {
+            position: { x: 0, y: 0 },
+            width:    this.width  * 1.1,
+            height:   this.height * 0.7,
+        }
+
         this.color             = color
         this.isAttacking       = false
         this.isAttackingLight  = false
@@ -110,14 +118,6 @@ export class Fighter extends Sprite {
         this.maxHealth         = maxHealth
         this.health            = maxHealth
         this.hitDamage         = hitDamage
-
-// combo system
-        this.comboStep        = 0
-        this.comboTimer       = null
-        this.attackConnected  = false
-        this.queuedCombo      = false
-
-        // numeric damage popups
         this._damageNumbers    = []
 
         this.aiProfile = {
@@ -137,6 +137,7 @@ export class Fighter extends Sprite {
         this.framesHold          = 4
         this.sprites             = sprites
         this.dead                = false
+        this.dying               = false
         this._aiCooldown         = 0
         this._aiJumpTimer        = 0
         this._aiThinkTimer       = 0
@@ -152,22 +153,6 @@ export class Fighter extends Sprite {
             sprites[key].image.src = sprites[key].imageSrc
         }
     }
-
-    getComboDamage() {
-    switch (this.comboStep) {
-        case 1:
-            return 10
-
-        case 2:
-            return 15
-
-        case 3:
-            return 25
-
-        default:
-            return this.hitDamage
-    }
-}
 
     shouldFlipSprite() {
         if (this.spriteDefaultFacing === 'left') return this.facing === 'right'
@@ -191,12 +176,17 @@ export class Fighter extends Sprite {
         }
         ctx.c.restore()
 
-        // draw block shield flash
+        // block flash overlay — only over the tight block box
         if (this.isBlocking) {
             ctx.c.save()
-            ctx.c.globalAlpha = 0.25
+            ctx.c.globalAlpha = 0.35
             ctx.c.fillStyle   = '#facc15'
-            ctx.c.fillRect(drawX, drawY, drawWidth, drawHeight)
+            ctx.c.fillRect(
+                this.blockBox.position.x,
+                this.blockBox.position.y,
+                this.blockBox.width,
+                this.blockBox.height
+            )
             ctx.c.globalAlpha = 1
             ctx.c.restore()
         }
@@ -209,29 +199,37 @@ export class Fighter extends Sprite {
         return ox >= 0 ? -ox - w : ox
     }
 
+    // Whether an incoming attack box overlaps this fighter's block box
+    isBlockingHit(incomingAttackBox) {
+        if (!this.isBlocking) return false
+        const b = this.blockBox
+        return (
+            incomingAttackBox.position.x + incomingAttackBox.width  >= b.position.x &&
+            incomingAttackBox.position.x                             <= b.position.x + b.width &&
+            incomingAttackBox.position.y + incomingAttackBox.height >= b.position.y &&
+            incomingAttackBox.position.y                             <= b.position.y + b.height
+        )
+    }
+
     drawHealthBar() {
         const barWidth  = this.healthBarWidth
         const barHeight = 8
         const x = this.position.x + this.width / 2 - barWidth / 2
         const y = this.position.y - 25
 
-        // outline
         ctx.c.fillStyle = 'rgba(0,0,0,0.6)'
         ctx.c.fillRect(x - 2, y - 2, barWidth + 4, barHeight + 4)
 
-        // empty track
         ctx.c.fillStyle = '#7f1d1d'
         ctx.c.fillRect(x, y, barWidth, barHeight)
 
-        // filled portion
         const fillWidth = Math.max(0, (this.health / this.maxHealth) * barWidth)
         ctx.c.fillStyle = this.color === 'blue' ? '#4ade80' : '#818CF8'
         ctx.c.fillRect(x, y, fillWidth, barHeight)
 
-        // numeric health
-        ctx.c.fillStyle    = 'white'
-        ctx.c.font         = '700 9px monospace'
-        ctx.c.textAlign    = 'center'
+        ctx.c.fillStyle = 'white'
+        ctx.c.font      = '700 9px monospace'
+        ctx.c.textAlign = 'center'
         ctx.c.fillText(
             `${Math.max(0, Math.ceil(this.health))} / ${this.maxHealth}`,
             x + barWidth / 2,
@@ -240,14 +238,13 @@ export class Fighter extends Sprite {
         ctx.c.textAlign = 'left'
     }
 
-    // floating damage numbers
     spawnDamageNumber(amount, isChip = false) {
         this._damageNumbers.push({
-            value:   Math.ceil(amount),
-            x:       this.position.x + this.width / 2 + (Math.random() * 20 - 10),
-            y:       this.position.y,
-            vy:      -2.5,
-            life:    45,
+            value:  Math.ceil(amount),
+            x:      this.position.x + this.width / 2 + (Math.random() * 20 - 10),
+            y:      this.position.y,
+            vy:     -2.5,
+            life:   45,
             isChip,
         })
     }
@@ -283,11 +280,23 @@ export class Fighter extends Sprite {
                 this.frameCurrent === this.sprites.death.frameMax - 1
             ) {
                 this.dead = true
+                this.velocity.x = 0
+                this.velocity.y = 0
             }
+        }
+
+        if (this.dead) {
+            this.attackBox.position.x = -9999
+            this.attackBox.position.y = -9999
+            return
         }
 
         this.attackBox.position.x = this.position.x + this.getAttackOffsetX()
         this.attackBox.position.y = this.position.y + this.attackBox.offset.y
+
+        // update tight block box — centered horizontally, upper 70% of body
+        this.blockBox.position.x = this.position.x + this.width / 2 - this.blockBox.width / 2
+        this.blockBox.position.y = this.position.y + this.height * 0.15
 
         this.position.x += this.velocity.x
 
@@ -323,82 +332,58 @@ export class Fighter extends Sprite {
         }
     }
 
-    // ── Attack methods ────────────────────────────────────────────────────────
-
     attack() {
-        // legacy — used by AI
+        if (this.dying || this.dead) return
         this.switchSprite('attack1')
         this.isAttacking      = true
         this.isAttackingLight = true
     }
 
     lightAttack() {
-    if (this.isAttackingHeavy || this.dead) return
-
-    clearTimeout(this.comboTimer)
-
-    // queue next attack if already attacking
-    if (this.isAttackingLight) {
-        this.queuedCombo = true
-        return
+        if (this.dying || this.dead) return
+        this.switchSprite('attack1')
+        this.isAttacking      = true
+        this.isAttackingLight = true
     }
-
-    this.comboStep++
-
-    if (this.comboStep > 3) {
-        this.comboStep = 1
-    }
-
-    this.switchSprite('attack1')
-
-    switch (this.comboStep) {
-        case 1:
-            this.hitDamage = 10
-            break
-
-        case 2:
-            this.hitDamage = 15
-            break
-
-        case 3:
-            this.hitDamage = 25
-            break
-    }
-
-    this.attackConnected = false
-
-    this.isAttacking = true
-    this.isAttackingLight = true
-}
 
     heavyAttack() {
-    if (
-        this.isAttackingLight ||
-        this.isAttackingHeavy ||
-        this.dead
-    ) return
+        if (this.dying || this.dead) return
+        if (this.sprites.attack2) {
+            this.switchSprite('attack2')
+        } else {
+            this.switchSprite('attack1')
+        }
+        this.isAttacking      = true
+        this.isAttackingHeavy = true
+    }
 
-    this.attackConnected = false
+    blockStart() {
+        if (this.dying || this.dead || this.isAttacking) return
+        this.isBlocking = true
+        this.switchSprite('block')
+    }
 
-    this.switchSprite(
-        this.sprites.attack2
-            ? 'attack2'
-            : 'attack1'
-    )
-
-    this.hitDamage = 30
-
-    this.isAttacking = true
-    this.isAttackingHeavy = true
-}
+    blockEnd() {
+        this.isBlocking = false
+    }
 
     takeHit(damage = 20, isChip = false) {
+        if (this.dying || this.dead) return
         this.health -= damage
         this.spawnDamageNumber(damage, isChip)
         if (this.health <= 0) {
-            this.health = 0
+            this.health            = 0
+            this.dying             = true
+            this.velocity.x        = 0
+            this.isAttacking       = false
+            this.isAttackingLight  = false
+            this.isAttackingHeavy  = false
+            this.isBlocking        = false
             this.switchSprite('death')
         } else {
+            this.isAttacking      = false
+            this.isAttackingLight = false
+            this.isAttackingHeavy = false
             this.switchSprite('takeHit')
         }
     }
@@ -406,101 +391,77 @@ export class Fighter extends Sprite {
     switchSprite(sprite) {
         if (this.image === this.sprites.death.image) return
 
-        if (this.image === this.sprites.attack1.image && this.frameCurrent < this.sprites.attack1.frameMax - 1) { return }
-        if (
-            this.image === this.sprites.attack1.image &&
-            this.frameCurrent === this.sprites.attack1.frameMax - 1
-        ) {
-            if (this.queuedCombo && this.comboStep < 3) {
-                this.queuedCombo = false
-                this.comboStep++
-                switch (this.comboStep) {
-                    case 2:
-                        this.hitDamage = 15
-                        break
-                    case 3:
-                        this.hitDamage = 25
-                        break
-                }
-                this.frameCurrent = 0
-                this.attackConnected = false
-                this.isAttackingLight = true
-                return
-            }
-            this.isAttacking = false
-            this.isAttackingLight = false
-            this.queuedCombo = false
-            clearTimeout(this.comboTimer)
-            this.comboTimer = setTimeout(() => {
-                this.comboStep = 0
-            }, 800)
+        if (this.image === this.sprites.takeHit.image && this.frameCurrent < this.sprites.takeHit.frameMax - 1) {
+            if (sprite !== 'death') return
         }
-        if ( this.sprites.attack2 &&this.image === this.sprites.attack2.image && this.frameCurrent < this.sprites.attack2.frameMax - 1) { return }
-        if (this.sprites.attack2 && this.image === this.sprites.attack2.image && this.frameCurrent === this.sprites.attack2.frameMax - 1) {this.isAttacking = false; this.isAttackingHeavy = false
-}
-        if (this.image === this.sprites.takeHit.image && this.frameCurrent < this.sprites.takeHit.frameMax - 1) return
+        if (this.image === this.sprites.attack1.image && this.frameCurrent < this.sprites.attack1.frameMax - 1) {
+            if (sprite !== 'takeHit' && sprite !== 'death') return
+        }
+        if (this.sprites.attack2 && this.image === this.sprites.attack2.image && this.frameCurrent < this.sprites.attack2.frameMax - 1) {
+            if (sprite !== 'takeHit' && sprite !== 'death') return
+        }
 
         switch (sprite) {
             case 'idle':
                 if (this.image !== this.sprites.idle.image) {
-                    this.image        = this.sprites.idle.image
-                    this.frameMax     = this.sprites.idle.frameMax
+                    this.image = this.sprites.idle.image
+                    this.frameMax = this.sprites.idle.frameMax
                     this.frameCurrent = 0
                 }
                 break
             case 'run':
                 if (this.image !== this.sprites.run.image) {
-                    this.image        = this.sprites.run.image
-                    this.frameMax     = this.sprites.run.frameMax
+                    this.image = this.sprites.run.image
+                    this.frameMax = this.sprites.run.frameMax
                     this.frameCurrent = 0
                 }
                 break
             case 'jump':
                 if (this.image !== this.sprites.jump.image) {
-                    this.image        = this.sprites.jump.image
-                    this.frameMax     = this.sprites.jump.frameMax
+                    this.image = this.sprites.jump.image
+                    this.frameMax = this.sprites.jump.frameMax
                     this.frameCurrent = 0
                 }
                 break
             case 'fall':
                 if (this.image !== this.sprites.fall.image) {
-                    this.image        = this.sprites.fall.image
-                    this.frameMax     = this.sprites.fall.frameMax
+                    this.image = this.sprites.fall.image
+                    this.frameMax = this.sprites.fall.frameMax
                     this.frameCurrent = 0
                 }
                 break
             case 'attack1':
                 if (this.image !== this.sprites.attack1.image) {
-                    this.image        = this.sprites.attack1.image
-                    this.frameMax     = this.sprites.attack1.frameMax
+                    this.image = this.sprites.attack1.image
+                    this.frameMax = this.sprites.attack1.frameMax
                     this.frameCurrent = 0
                 }
                 break
             case 'attack2':
                 if (this.sprites.attack2 && this.image !== this.sprites.attack2.image) {
-                    this.image        = this.sprites.attack2.image
-                    this.frameMax     = this.sprites.attack2.frameMax
+                    this.image = this.sprites.attack2.image
+                    this.frameMax = this.sprites.attack2.frameMax
                     this.frameCurrent = 0
                 }
                 break
             case 'block':
                 if (this.sprites.block && this.image !== this.sprites.block.image) {
-                    this.image        = this.sprites.block.image
-                    this.frameMax     = this.sprites.block.frameMax
+                    this.image = this.sprites.block.image
+                    this.frameMax = this.sprites.block.frameMax
                     this.frameCurrent = 0
                 }
                 break
             case 'takeHit':
                 if (this.image !== this.sprites.takeHit.image) {
-                    this.image        = this.sprites.takeHit.image
-                    this.frameMax     = this.sprites.takeHit.frameMax
+                    this.image = this.sprites.takeHit.image
+                    this.frameMax = this.sprites.takeHit.frameMax
                     this.frameCurrent = 0
                 }
                 break
             case 'death':
                 if (this.image !== this.sprites.death.image) {
-                    this.image        = this.sprites.death.image
-                    this.frameMax     = this.sprites.death.frameMax
+                    this.image = this.sprites.death.image
+                    this.frameMax = this.sprites.death.frameMax
                     this.frameCurrent = 0
                 }
                 break
@@ -508,7 +469,7 @@ export class Fighter extends Sprite {
     }
 
     updateAI(target) {
-        if (this.dead || this.health <= 0) return
+        if (this.dead || this.dying || this.health <= 0) return
 
         if (this._aiThinkTimer > 0) { this._aiThinkTimer--; return }
         this._aiThinkTimer = this.aiProfile.thinkInterval

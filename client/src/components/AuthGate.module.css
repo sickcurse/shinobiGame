@@ -1,89 +1,205 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:wght@400;500;600&display=swap');
+
 .gate {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 14px;
-    width: 260px;
+    gap: 18px;
+
+    width: 340px;
+    padding: 28px;
+
+    background:
+        linear-gradient(
+            to bottom,
+            rgba(20, 12, 12, 0.96),
+            rgba(6, 6, 6, 0.98)
+        );
+
+    border: 1px solid rgba(212, 175, 55, 0.25);
+
+    box-shadow:
+        0 0 40px rgba(0, 0, 0, 0.7),
+        inset 0 0 40px rgba(212, 175, 55, 0.04);
+
+    position: relative;
 }
 
-.tabs { display: flex; }
+.gate::before {
+    content: "✠";
+
+    color: rgba(212, 175, 55, 0.45);
+
+    font-family: "Cinzel", serif;
+    font-size: 24px;
+
+    margin-bottom: 4px;
+}
+
+.tabs {
+    display: flex;
+    gap: 24px;
+}
 
 .tab {
     background: none;
     border: none;
-    border-bottom: 2px solid transparent;
-    color: rgba(255,255,255,0.35);
+    border-bottom: 1px solid transparent;
+
+    color: rgba(232, 221, 198, 0.55);
+
     cursor: pointer;
-    font-family: 'Press Start 2P', cursive;
-    font-size: 7px;
+
+    font-family: "Cinzel", serif;
+    font-size: 13px;
+
     letter-spacing: 2px;
-    padding: 8px 18px;
-    transition: color 0.15s, border-color 0.15s;
+    text-transform: uppercase;
+
+    padding: 8px 0;
+
+    transition: all 0.2s ease;
 }
-.tab.active  { border-bottom-color: #818CF8; color: #818CF8; }
-.tab:hover:not(.active) { color: rgba(255,255,255,0.6); }
+
+.tab.active {
+    color: #d4af37;
+    border-bottom-color: #d4af37;
+}
+
+.tab:hover:not(.active) {
+    color: #f0d98f;
+}
 
 .fields {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+
     width: 100%;
 }
 
 .input {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.15);
-    color: white;
-    font-family: 'Press Start 2P', cursive;
-    font-size: 7px;
-    letter-spacing: 1px;
-    outline: none;
-    padding: 12px 14px;
     width: 100%;
-    transition: border-color 0.15s;
+
+    padding: 14px 16px;
+
+    background: rgba(0, 0, 0, 0.45);
+
+    border: 1px solid rgba(212, 175, 55, 0.18);
+
+    color: #ece5d8;
+
+    outline: none;
+
+    font-family: "Cormorant Garamond", serif;
+    font-size: 18px;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
 }
-.input:focus { border-color: #818CF8; }
-.input::placeholder { color: rgba(255,255,255,0.2); }
+
+.input:focus {
+    border-color: #d4af37;
+
+    box-shadow:
+        0 0 12px rgba(212, 175, 55, 0.15);
+}
+
+.input::placeholder {
+    color: rgba(232, 221, 198, 0.35);
+    font-style: italic;
+}
 
 .error {
-    color: #f87171;
-    font-size: 6px;
-    letter-spacing: 1px;
-    min-height: 14px;
+    color: #b85b5b;
+
+    font-family: "Cormorant Garamond", serif;
+    font-size: 15px;
+
     text-align: center;
+    min-height: 22px;
 }
 
 .btn {
-    background: #818CF8;
-    border: none;
-    color: #000;
-    cursor: pointer;
-    font-family: 'Press Start 2P', cursive;
-    font-size: 8px;
-    letter-spacing: 2px;
-    padding: 12px;
     width: 100%;
-    transition: background 0.15s;
+
+    padding: 14px;
+
+    cursor: pointer;
+
+    background:
+        linear-gradient(
+            to bottom,
+            #5d1414,
+            #2a0707
+        );
+
+    border: 1px solid #a67c52;
+
+    color: #f1e4c7;
+
+    font-family: "Cinzel", serif;
+    font-size: 15px;
+
+    letter-spacing: 2px;
+    text-transform: uppercase;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 }
-.btn:hover:not(:disabled) { background: #a5b4fc; }
-.btn:disabled { opacity: 0.5; cursor: default; }
+
+.btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 0 18px rgba(212, 175, 55, 0.15);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
 
 .or {
-    color: rgba(255,255,255,0.2);
-    font-size: 7px;
-    letter-spacing: 2px;
+    color: rgba(232, 221, 198, 0.35);
+
+    font-family: "Cinzel", serif;
+    font-size: 12px;
+
+    letter-spacing: 3px;
+    text-transform: uppercase;
 }
 
 .guestBtn {
-    background: none;
-    border: 1px solid rgba(255,255,255,0.2);
-    color: rgba(255,255,255,0.55);
+    background: transparent;
+
+    border: 1px solid rgba(212, 175, 55, 0.25);
+
+    color: rgba(232, 221, 198, 0.75);
+
     cursor: pointer;
-    font-family: 'Press Start 2P', cursive;
-    font-size: 7px;
+
+    padding: 12px 20px;
+
+    font-family: "Cinzel", serif;
+    font-size: 13px;
+
     letter-spacing: 2px;
-    padding: 10px 20px;
-    transition: border-color 0.15s, color 0.15s;
+    text-transform: uppercase;
+
+    transition:
+        border-color 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease;
 }
-.guestBtn:hover { border-color: rgba(255,255,255,0.5); color: white; }
+
+.guestBtn:hover {
+    border-color: #d4af37;
+    color: #f0d98f;
+
+    box-shadow:
+        0 0 12px rgba(212, 175, 55, 0.12);
+}

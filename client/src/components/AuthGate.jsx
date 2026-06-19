@@ -23,8 +23,8 @@ export default function AuthGate({ onLogin, onRegister, onGuest }) {
     return (
         <div className={s.gate}>
             <div className={s.tabs}>
-                <button className={`${s.tab} ${mode === 'login'    ? s.active : ''}`} onClick={() => switchMode('login')}>LOGIN</button>
-                <button className={`${s.tab} ${mode === 'register' ? s.active : ''}`} onClick={() => switchMode('register')}>REGISTER</button>
+                <button className={`${s.tab} ${mode === 'login'    ? s.active : ''}`} onClick={() => switchMode('login')}>Back Again</button>
+                <button className={`${s.tab} ${mode === 'register' ? s.active : ''}`} onClick={() => switchMode('register')}>Sign in Blood</button>
             </div>
 
             <div className={s.fields}>
@@ -50,12 +50,12 @@ export default function AuthGate({ onLogin, onRegister, onGuest }) {
                 />
                 <div className={s.error}>{error}</div>
                 <button className={s.btn} onClick={submit} disabled={loading}>
-                    {loading ? '...' : mode === 'login' ? 'LOGIN' : 'REGISTER'}
+                    {loading ? '...' : mode === 'login' ? 'Back Again' : 'Sign in Blood'}
                 </button>
             </div>
 
             <div className={s.or}>— or —</div>
-            <button className={s.guestBtn} onClick={onGuest}>PLAY AS GUEST</button>
+            <button className={s.guestBtn} onClick={onGuest}>Play as a Guest</button>
         </div>
     )
 }

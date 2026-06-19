@@ -9,25 +9,24 @@ import {
     computeLevelGrade,
     elapsedSeconds,
 } from './scoring.js'
+import { comboTracker } from './combo.js'
 
 let cb = {}
 
 let background, shop, player, enemies
-let roundOver   = false
-let gameActive  = false
-let score       = 0
+let roundOver  = false
+let gameActive = false
+let score      = 0
+
+// combo display state
+let _comboDisplay = null   // { name, count, timer }
 
 const _killedEnemies = new WeakSet()
 let _hudInterval = null
 
-const keys = {
-    a:     { pressed: false },
-    d:     { pressed: false },
-    up:    { pressed: false },
-    down:  { pressed: false },
-    block: { pressed: false },
-}
+const keys = { a: { pressed: false }, d: { pressed: false } }
 
+// ── Public API ────────────────────────────────────────────────────────────────
 export function init(canvasEl, callbacks) {
     setupCanvas(canvasEl)
     cb = callbacks
@@ -49,16 +48,17 @@ export function restartGame() {
     levelManager.reset()
     score = 0
     cb.onScore?.(0)
+    comboTracker.reset()
     loadLevel(levelManager.getConfig())
 }
 
+// ── Level loading ─────────────────────────────────────────────────────────────
 function loadLevel(config) {
     roundOver = false
-    keys.a.pressed     = false
-    keys.d.pressed     = false
-    keys.up.pressed    = false
-    keys.down.pressed  = false
-    keys.block.pressed = false
+    keys.a.pressed = false
+    keys.d.pressed = false
+    comboTracker.reset()
+    _comboDisplay = null
 
     background = new Sprite({ position: { x: 0, y: 0 }, imageSrc: config.background.imageSrc })
 
@@ -94,6 +94,7 @@ function loadLevel(config) {
     cb.onTimer?.(0)
 }
 
+// ── HUD stopwatch ─────────────────────────────────────────────────────────────
 function _startHud() {
     _stopHud()
     _hudInterval = setInterval(() => {
@@ -106,35 +107,131 @@ function _stopHud() {
     if (_hudInterval) { clearInterval(_hudInterval); _hudInterval = null }
 }
 
+// ── Process a player hit on an enemy ─────────────────────────────────────────
+function processPlayerHit(enemy, type) {
+    const baseDmg    = type === 'H' ? player.hitDamage * 1.8 : player.hitDamage
+    const blocked    = enemy.isBlockingHit(player.attackBox)
+
+    const { mult, comboName, hitCount } = comboTracker.registerHit(type)
+
+    if (blocked && type !== 'H') {
+        // light blocked — chip only
+        enemy.takeHit(Math.floor(baseDmg * 0.1), true)
+        return
+    }
+
+    if (blocked && type === 'H') {
+        // heavy breaks block
+        enemy.isBlocking = false
+        enemy.takeHit(Math.floor(baseDmg * 0.5), true)
+        return
+    }
+
+    const finalDmg = baseDmg * mult
+    const dmg      = Math.min(finalDmg, Math.max(0, enemy.health))
+    enemy.takeHit(finalDmg)
+    recordDamageDealt(dmg)
+
+    // juggle — pull enemy inward so they stay in combo range
+    if (hitCount > 1 && !enemy.dying && !enemy.dead) {
+        const pull = comboTracker.jugglePush(player.facing)
+        enemy.velocity.x = pull * 0.18   // gentle constant pull each frame
+    }
+
+    // heavy knockback (only if not in a combo chain)
+    if (type === 'H' && hitCount <= 1) {
+        enemy.velocity.x = enemy.position.x < player.position.x ? 8 : -8
+    }
+
+    if (comboName) {
+        _comboDisplay = { name: comboName, count: hitCount, timer: 90 }
+        cb.onCombo?.({ name: comboName, count: hitCount })
+    }
+
+    if (enemy.health <= 0 && !_killedEnemies.has(enemy)) {
+        _killedEnemies.add(enemy)
+        recordEnemyKill(
+            enemy.maxHealth,
+            elapsedSeconds() * 1000,
+            levelManager.getConfig().timeLimit * 1000
+        )
+    }
+
+    score += Math.round(dmg)
+    cb.onScore?.(score)
+}
+
+// ── Draw combo name on canvas ─────────────────────────────────────────────────
+function drawComboDisplay() {
+    if (!_comboDisplay) return
+    _comboDisplay.timer--
+    if (_comboDisplay.timer <= 0) { _comboDisplay = null; return }
+
+    const alpha = Math.min(1, _comboDisplay.timer / 20)
+    const { c }  = ctx
+
+    c.save()
+    c.globalAlpha = alpha
+    c.font        = 'bold 20px monospace'
+    c.fillStyle   = '#ffd700'
+    c.textAlign   = 'center'
+    c.fillText(
+        `${_comboDisplay.name}  x${_comboDisplay.count}`,
+        ctx.canvas.width / 2,
+        80
+    )
+    c.restore()
+}
+
+// ── Round end ─────────────────────────────────────────────────────────────────
 function endRound() {
     if (roundOver || levelManager.transitioning) return
     roundOver = true
     _stopHud()
+    comboTracker.reset()
 
-    const allDead   = enemies.every(e => e.health <= 0)
-    const playerWon = allDead && player.health > 0
+    const allEnemiesDown = enemies.every(e => e.dying || e.dead)
+    const playerDown     = player.dying || player.dead
+    const playerWon      = allEnemiesDown && !playerDown
 
     const grade = computeLevelGrade(levelManager.getConfig().timeLimit)
     score += grade.totalPoints
     cb.onScore?.(score)
 
     if (playerWon && levelManager.hasNextLevel()) {
-        levelManager.nextLevel(
-            (nextConfig) => loadLevel(nextConfig),
-            (level, name, done) => cb.onTransition?.(level, name, grade, done)
-        )
+        waitForDeathAnims(enemies, () => {
+            levelManager.nextLevel(
+                (nextConfig) => loadLevel(nextConfig),
+                (level, name, done) => cb.onTransition?.(level, name, grade, done)
+            )
+        })
     } else if (playerWon) {
-        gameActive = false
-        cb.onVictory?.(score)
-        cb.onSubmitScore?.(score, levelManager.currentLevel)
+        waitForDeathAnims(enemies, () => {
+            gameActive = false
+            cb.onVictory?.(score)
+            cb.onSubmitScore?.(score, levelManager.currentLevel)
+        })
     } else {
-        gameActive = false
-        const result = player.health <= 0 ? 'loss' : 'tie'
-        cb.onGameOver?.(result)
-        cb.onSubmitScore?.(score, levelManager.currentLevel)
+        waitForDeathAnims([player], () => {
+            gameActive = false
+            const result = playerDown && !allEnemiesDown ? 'loss' : 'tie'
+            cb.onGameOver?.(result)
+            cb.onSubmitScore?.(score, levelManager.currentLevel)
+        })
     }
 }
 
+function waitForDeathAnims(fighters, callback) {
+    const dying = fighters.filter(f => f.dying || f.dead)
+    if (dying.length === 0) { callback(); return }
+    function check() {
+        if (dying.every(f => f.dead)) callback()
+        else requestAnimationFrame(check)
+    }
+    requestAnimationFrame(check)
+}
+
+// ── Game loop ─────────────────────────────────────────────────────────────────
 function loop() {
     requestAnimationFrame(loop)
     if (!gameActive) return
@@ -155,146 +252,114 @@ function loop() {
     player.update()
     for (const e of enemies) e.update()
 
+    comboTracker.tick()
+    drawComboDisplay()
+
     // ── Player movement ──
-    player.velocity.x = 0
-    if (!player.isBlocking) {
-        if (keys.a.pressed && player.lastKey === 'a') {
-            player.velocity.x = -7
-            player.facing = 'left'
-            player.switchSprite('run')
-        } else if (keys.d.pressed && player.lastKey === 'd') {
-            player.velocity.x = 7
-            player.facing = 'right'
-            player.switchSprite('run')
+    if (!player.dying && !player.dead) {
+        if (!player.isBlocking) {
+            player.velocity.x = 0
+            if (keys.a.pressed && player.lastKey === 'a') {
+                player.velocity.x = -7
+                player.facing = 'left'
+                player.switchSprite('run')
+            } else if (keys.d.pressed && player.lastKey === 'd') {
+                player.velocity.x = 7
+                player.facing = 'right'
+                player.switchSprite('run')
+            } else {
+                player.switchSprite('idle')
+            }
+            if (player.velocity.y < 0) player.switchSprite('jump')
+            else if (player.velocity.y > 0) player.switchSprite('fall')
         } else {
-            player.switchSprite('idle')
+            player.velocity.x = 0
         }
-    } else {
-        player.switchSprite('block')
     }
-
-    if (player.velocity.y < 0) player.switchSprite('jump')
-    else if (player.velocity.y > 0) player.switchSprite('fall')
-
-    // ── Block state ──
-    player.isBlocking = keys.block.pressed && !player.isAttacking
 
     // ── AI ──
-    for (const e of enemies) { if (!e.dead) e.updateAI(player) }
+    for (const e of enemies) { if (!e.dead && !e.dying) e.updateAI(player) }
 
-    // ── Player light attack (A button) hits enemy ──
-    if (player.isAttackingLight && player.frameCurrent === 4) {
+    // ── Player light attack ──
+    if (player.isAttackingLight && player.frameCurrent === 4 &&
+        player.image === player.sprites.attack1.image) {
+        player.isAttackingLight = false
+        player.isAttacking      = false
         for (const e of enemies) {
-            if (!e.dead && rectangularCollision({ rectangle1: player, rectangle2: e })) {
-                if (!e.isBlocking) {
-                    const dmg = Math.min(player.hitDamage, Math.max(0, e.health))
-                    e.takeHit(player.hitDamage)
-                    recordDamageDealt(dmg)
-                    if (e.health <= 0 && !_killedEnemies.has(e)) {
-                        _killedEnemies.add(e)
-                        recordEnemyKill(e.maxHealth, elapsedSeconds() * 1000, levelManager.getConfig().timeLimit * 1000)
-                    }
-                } else {
-                    // blocked — small chip damage
-                    e.takeHit(Math.floor(player.hitDamage * 0.1))
-                }
+            if (!e.dying && !e.dead && rectangularCollision({ rectangle1: player, rectangle2: e })) {
+                processPlayerHit(e, 'L')
             }
         }
-        player.isAttackingLight = false
     }
 
-    // ── Player heavy attack (B button) hits enemy ──
-    if (player.isAttackingHeavy && player.frameCurrent === 4) {
+    // ── Player heavy attack ──
+    const heavyImage = player.sprites.attack2
+        ? player.sprites.attack2.image
+        : player.sprites.attack1.image
+    if (player.isAttackingHeavy && player.frameCurrent === 4 &&
+        player.image === heavyImage) {
+        player.isAttackingHeavy = false
+        player.isAttacking      = false
         for (const e of enemies) {
-            if (!e.dead && rectangularCollision({ rectangle1: player, rectangle2: e })) {
-                if (!e.isBlocking) {
-                    const dmg = Math.min(player.hitDamage * 1.8, Math.max(0, e.health))
-                    e.takeHit(player.hitDamage * 1.8)
-                    recordDamageDealt(dmg)
-                    // heavy attacks knock back
-                    e.velocity.x = e.position.x < player.position.x ? 8 : -8
-                    if (e.health <= 0 && !_killedEnemies.has(e)) {
-                        _killedEnemies.add(e)
-                        recordEnemyKill(e.maxHealth, elapsedSeconds() * 1000, levelManager.getConfig().timeLimit * 1000)
-                    }
-                } else {
-                    // heavy breaks block — deal half damage anyway
-                    e.isBlocking = false
-                    e.takeHit(Math.floor(player.hitDamage * 0.5))
-                }
+            if (!e.dying && !e.dead && rectangularCollision({ rectangle1: player, rectangle2: e })) {
+                processPlayerHit(e, 'H')
             }
         }
-        player.isAttackingHeavy = false
     }
 
     // ── Enemy hits player ──
     for (const e of enemies) {
-        if (e.isAttacking && e.image === e.sprites.attack1.image && e.frameCurrent === 2) {
-            if (rectangularCollision({ rectangle1: e, rectangle2: player })) {
-                if (!player.isBlocking) {
+        if (e.isAttacking && e.frameCurrent === 2 &&
+            e.image === e.sprites.attack1.image) {
+            e.isAttacking = false
+            if (!player.dying && !player.dead &&
+                rectangularCollision({ rectangle1: e, rectangle2: player })) {
+                if (!player.isBlockingHit(e.attackBox)) {
                     player.takeHit(e.hitDamage)
                     recordHitTaken()
+                    comboTracker.reset()   // taking a hit breaks your combo
                 } else {
-                    // blocked — still chip
-                    player.takeHit(Math.floor(e.hitDamage * 0.1))
+                    player.takeHit(Math.floor(e.hitDamage * 0.1), true)
                 }
             }
-            e.isAttacking = false
         }
     }
 
     // ── Check round over ──
     if (!roundOver && !levelManager.transitioning) {
-        if (enemies.every(e => e.health <= 0) || player.health <= 0) endRound()
+        const allEnemiesDown = enemies.every(e => e.dying || e.dead)
+        const playerDown     = player.dying || player.dead
+        if (allEnemiesDown || playerDown) endRound()
     }
 }
 
 // ── Keyboard input ────────────────────────────────────────────────────────────
 export function onKeyDown(e) {
     if (!gameActive || !player) return
-
-    if (!player.dead) {
+    if (!player.dead && !player.dying) {
         switch (e.key) {
-            case 'd':           keys.d.pressed = true;     player.lastKey = 'd'; break
-            case 'a':           keys.a.pressed = true;     player.lastKey = 'a'; break
-            case 'w':           player.velocity.y = -18;   break
-            case 'ArrowUp':     keys.up.pressed = true;    break
-            case 'ArrowDown':   keys.down.pressed = true;  break
-            case 'j':           // A button — light attack
-                e.preventDefault()
-                player.lightAttack()
-                break
-            case 'k':           // B button — heavy attack
-                e.preventDefault()
-                player.heavyAttack()
-                break
-            case 'l':           // block
-                keys.block.pressed = true
-                break
-            case ' ':           // keep space as light for keyboard players
-                e.preventDefault()
-                player.lightAttack()
-                break
+            case 'd': keys.d.pressed = true;  player.lastKey = 'd'; break
+            case 'a': keys.a.pressed = true;  player.lastKey = 'a'; break
+            case 'w': player.velocity.y = -18; break
+            case 'j': e.preventDefault(); player.lightAttack(); break
+            case 'k': e.preventDefault(); player.heavyAttack(); break
+            case 'l': player.blockStart(); break
+            case ' ': e.preventDefault(); player.lightAttack(); break
         }
     }
-
     if ((e.key === 'r' || e.key === 'R') && gameActive) restartGame()
 }
 
 export function onKeyUp(e) {
     if (!gameActive) return
-    switch (e.key) {
-        case 'd':         keys.d.pressed     = false; break
-        case 'a':         keys.a.pressed     = false; break
-        case 'ArrowUp':   keys.up.pressed    = false; break
-        case 'ArrowDown': keys.down.pressed  = false; break
-        case 'l':         keys.block.pressed = false; break
-    }
+    if (e.key === 'd') keys.d.pressed = false
+    if (e.key === 'a') keys.a.pressed = false
+    if (e.key === 'l' && player) player.blockEnd()
 }
 
 // ── Touch / mobile ────────────────────────────────────────────────────────────
 export function pressKey(key) {
-    if (!gameActive || !player || player.dead) return
+    if (!gameActive || !player || player.dead || player.dying) return
     if (key === 'a') { keys.a.pressed = true; player.lastKey = 'a' }
     if (key === 'd') { keys.d.pressed = true; player.lastKey = 'd' }
 }
@@ -305,25 +370,26 @@ export function releaseKey(key) {
 }
 
 export function touchJump() {
-    if (!gameActive || !player || player.dead) return
+    if (!gameActive || !player || player.dead || player.dying) return
     player.velocity.y = -18
 }
 
 export function touchLightAttack() {
-    if (!gameActive || !player || player.dead) return
+    if (!gameActive || !player || player.dead || player.dying) return
     player.lightAttack()
 }
 
 export function touchHeavyAttack() {
-    if (!gameActive || !player || player.dead) return
+    if (!gameActive || !player || player.dead || player.dying) return
     player.heavyAttack()
 }
 
 export function touchBlockStart() {
-    if (!gameActive || !player || player.dead) return
-    keys.block.pressed = true
+    if (!gameActive || !player || player.dead || player.dying) return
+    player.blockStart()
 }
 
 export function touchBlockEnd() {
-    keys.block.pressed = false
+    if (!gameActive || !player) return
+    player.blockEnd()
 }
