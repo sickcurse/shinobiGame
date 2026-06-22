@@ -1,4 +1,18 @@
-server/node_modules
+# OS
+.DS_Store
+.env
+*.log
+
+# Node
+node_modules/
+dist/
+
+# Server
+server/node_modules/
 server/shinobi.db
-client/node_modules
-client/dist
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

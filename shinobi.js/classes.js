@@ -17,6 +17,11 @@ class Sprite {
         this.offset = offset
         this.anchorBottom = anchorBottom
 
+        // Add error handling for image loading
+        this.image.onerror = () => {
+            console.error(`[Sprite] Failed to load image: ${imageSrc}`)
+        }
+
         if (anchorBottom) {
             this.image.onload = () => this._snapToFloor()
         }
@@ -75,7 +80,7 @@ class Platform {
 }
 
 class Fighter extends Sprite {
-    constructor({position, velocity, color = 'red',  imageSrc, scale = 1, frameMax = 1, offset = {x: 0, y: 0}, sprites, attackBox = { offset:{}, width: undefined, height: undefined}, facing = 'right', healthBarWidth = 80, maxHealth = 100, hitDamage = 20, aiProfile = {}, homePosition, spriteDefaultFacing = 'right'}) {
+    constructor({position, velocity, color = 'red',  imageSrc, scale = 1, frameMax = 1, offset = {x: 0, y: 0}, sprites, attackBox = { offset:{}, width: undefined, height: undefined}, facing = 'right', spriteDefaultFacing = 'right', maxHealth = 100, hitDamage = 20, aiProfile = {}, healthBarWidth = 140, homePosition = null}) {
         const layoutScale = scale / FIGHTER_BASE_SCALE
         const scaledOffset = {
             x: offset.x * layoutScale,
@@ -139,6 +144,10 @@ class Fighter extends Sprite {
         for (const sprite in sprites) {
             sprites[sprite].image = new Image()
             sprites[sprite].image.src = sprites[sprite].imageSrc
+            // Add error handling for sprite images
+            sprites[sprite].image.onerror = () => {
+                console.error(`[Fighter] Failed to load sprite: ${sprites[sprite].imageSrc}`)
+            }
         }
         
     }
