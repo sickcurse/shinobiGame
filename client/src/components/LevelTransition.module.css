@@ -1,13 +1,13 @@
 .overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,0.85);
+    background: rgba(0,0,0,0.88);
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     z-index: 10;
-    text-align: center;
-    letter-spacing: 2px;
+    gap: 24px;
     animation: fadein 0.4s ease;
 }
 
@@ -17,12 +17,57 @@
 }
 
 .title {
-    font-size: 18px;
-    line-height: 2.2;
+    font-size: 13px;
+    color: white;
+    letter-spacing: 3px;
+    text-align: center;
+}
+
+.title span {
     color: #818CF8;
 }
-.title span {
-    font-size: 12px;
+
+.grade {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+.letter {
+    font-size: 72px;
+    line-height: 1;
+    font-weight: bold;
+    color: #818CF8;
+    text-shadow: 0 0 30px #818CF8;
+}
+
+.letter[data-letter="S"] { color: #facc15; text-shadow: 0 0 30px #facc15; }
+.letter[data-letter="A"] { color: #4ade80; text-shadow: 0 0 30px #4ade80; }
+.letter[data-letter="B"] { color: #818CF8; text-shadow: 0 0 30px #818CF8; }
+.letter[data-letter="C"] { color: #fb923c; text-shadow: 0 0 30px #fb923c; }
+.letter[data-letter="D"] { color: #f87171; text-shadow: 0 0 30px #f87171; }
+.letter[data-letter="F"] { color: #6b7280; text-shadow: none; }
+
+.breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 160px;
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 7px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 2px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding-bottom: 4px;
+}
+
+.total {
     color: white;
-    opacity: 0.8;
+    font-size: 8px;
+    border-bottom: none;
+    margin-top: 4px;
 }

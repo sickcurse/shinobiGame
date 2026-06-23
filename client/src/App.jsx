@@ -57,8 +57,8 @@ export default function App() {
     const onTimer  = useCallback((t) => setTimer(t),  [])
     const onPhase  = useCallback((p) => setPhase(p),  [])
 
-    const onTransition = useCallback((level, name, done) => {
-        setTransition({ level, name })
+    const onTransition = useCallback((level, name, grade, done) => {
+        setTransition({ level, name, grade })
         setTimeout(() => {
             setTransition(null)
             done()
@@ -123,7 +123,7 @@ export default function App() {
                 full-bleed (landscape) or letterboxed (portrait). */}
             {phase === 'playing' && <MobileControls />}
 
-            {transition && <LevelTransition level={transition.level} name={transition.name} />}
+            {transition && (<LevelTransition level={transition.level} name={transition.name} grade={transition.grade} />)}
 
             {phase === 'menu' && (
                 <Menu
