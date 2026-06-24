@@ -11,7 +11,7 @@ function computeScale() {
     )
 }
 
-export default function GameCanvas({ phase, onScore, onTimer, onPhase, onTransition, onVictory, onGameOver, onSubmitScore, engineRef }) {
+export default function GameCanvas({ phase, onScore, onTimer, onPhase, onTransition, onVictory, onGameOver, onSubmitScore, onCombo, engineRef }) {
     const canvasRef = useRef(null)
     const ready     = useRef(false)
     const [scale, setScale] = useState(computeScale)
@@ -21,7 +21,7 @@ export default function GameCanvas({ phase, onScore, onTimer, onPhase, onTransit
     useEffect(() => {
         if (ready.current) return
         ready.current = true
-        init(canvasRef.current, { onScore, onTimer, onPhase, onTransition, onVictory, onGameOver, onSubmitScore })
+        init(canvasRef.current, { onScore, onTimer, onPhase, onTransition, onVictory, onGameOver, onSubmitScore, onCombo })
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {

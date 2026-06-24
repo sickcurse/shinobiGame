@@ -14,15 +14,14 @@ import { comboTracker } from './combo.js'
 let cb = {}
 
 let background, shop, player, enemies
-let roundOver  = false
-let gameActive = false
-let score      = 0
+let roundOver      = false
+let gameActive     = false
+let _hitstopFrames = 0
+let score          = 0
 
-// combo display state
-let _comboDisplay = null   // { name, count, timer }
-
+let _comboDisplay  = null
 const _killedEnemies = new WeakSet()
-let _hudInterval = null
+let _hudInterval   = null
 
 const keys = { a: { pressed: false }, d: { pressed: false } }
 
@@ -46,7 +45,8 @@ export function restartGame() {
     _stopHud()
     levelManager.transitioning = false
     levelManager.reset()
-    score = 0
+    score          = 0
+    _hitstopFrames = 0
     cb.onScore?.(0)
     comboTracker.reset()
     loadLevel(levelManager.getConfig())
@@ -54,19 +54,20 @@ export function restartGame() {
 
 // ── Level loading ─────────────────────────────────────────────────────────────
 function loadLevel(config) {
-    roundOver = false
+    roundOver      = false
+    _hitstopFrames = 0
     keys.a.pressed = false
     keys.d.pressed = false
     comboTracker.reset()
-    _comboDisplay = null
+    _comboDisplay  = null
 
     background = new Sprite({ position: { x: 0, y: 0 }, imageSrc: config.background.imageSrc })
 
     shop = new Sprite({
-        position:    { x: config.shop.x * (config.shop.scale / SHOP_BASE_SCALE), y: config.shop.y },
-        imageSrc:    config.shop.imageSrc,
-        scale:       config.shop.scale,
-        frameMax:    config.shop.frameMax,
+        position:     { x: config.shop.x * (config.shop.scale / SHOP_BASE_SCALE), y: config.shop.y },
+        imageSrc:     config.shop.imageSrc,
+        scale:        config.shop.scale,
+        frameMax:     config.shop.frameMax,
         anchorBottom: true,
     })
 
@@ -76,7 +77,7 @@ function loadLevel(config) {
         const e = new Fighter({
             ...defaults,
             ...cfg,
-            aiProfile: { ...(defaults.aiProfile || {}), ...(cfg.aiProfile || {}) },
+            aiProfile:           { ...(defaults.aiProfile || {}), ...(cfg.aiProfile || {}) },
             homePosition:        cfg.homePosition        ?? { x: cfg.position.x, y: cfg.position.y },
             spriteDefaultFacing: cfg.spriteDefaultFacing ?? 'left',
             facing:              cfg.facing              ?? 'left',
@@ -109,21 +110,20 @@ function _stopHud() {
 
 // ── Process a player hit on an enemy ─────────────────────────────────────────
 function processPlayerHit(enemy, type) {
-    const baseDmg    = type === 'H' ? player.hitDamage * 1.8 : player.hitDamage
-    const blocked    = enemy.isBlockingHit(player.attackBox)
-
+    const baseDmg = type === 'H' ? player.hitDamage * 1.8 : player.hitDamage
+    const blocked = enemy.isBlockingHit(player.attackBox)
     const { mult, comboName, hitCount } = comboTracker.registerHit(type)
 
     if (blocked && type !== 'H') {
-        // light blocked — chip only
         enemy.takeHit(Math.floor(baseDmg * 0.1), true)
+        _hitstopFrames = 2
         return
     }
 
     if (blocked && type === 'H') {
-        // heavy breaks block
         enemy.isBlocking = false
         enemy.takeHit(Math.floor(baseDmg * 0.5), true)
+        _hitstopFrames = 5
         return
     }
 
@@ -132,15 +132,12 @@ function processPlayerHit(enemy, type) {
     enemy.takeHit(finalDmg)
     recordDamageDealt(dmg)
 
-    // juggle — pull enemy inward so they stay in combo range
-    if (hitCount > 1 && !enemy.dying && !enemy.dead) {
-        const pull = comboTracker.jugglePush(player.facing)
-        enemy.velocity.x = pull * 0.18   // gentle constant pull each frame
-    }
+    // hitstop — heavy hits freeze longer
+    _hitstopFrames = type === 'H' ? 21 : 14
 
     // heavy knockback (only if not in a combo chain)
     if (type === 'H' && hitCount <= 1) {
-        enemy.velocity.x = enemy.position.x < player.position.x ? 8 : -8
+        enemy.velocity.x = enemy.position.x < player.position.x ? -4 : 4
     }
 
     if (comboName) {
@@ -168,7 +165,7 @@ function drawComboDisplay() {
     if (_comboDisplay.timer <= 0) { _comboDisplay = null; return }
 
     const alpha = Math.min(1, _comboDisplay.timer / 20)
-    const { c }  = ctx
+    const { c } = ctx
 
     c.save()
     c.globalAlpha = alpha
@@ -186,7 +183,8 @@ function drawComboDisplay() {
 // ── Round end ─────────────────────────────────────────────────────────────────
 function endRound() {
     if (roundOver || levelManager.transitioning) return
-    roundOver = true
+    roundOver      = true
+    _hitstopFrames = 0
     _stopHud()
     comboTracker.reset()
 
@@ -255,17 +253,26 @@ function loop() {
     comboTracker.tick()
     drawComboDisplay()
 
+    // ── Hitstop — keep drawing but skip all game logic ──
+    if (_hitstopFrames > 0) {
+        _hitstopFrames--
+        if (_hitstopFrames === 0) {
+            for (const e of enemies) e.velocity.x = 0
+        }
+        return
+    }
+
     // ── Player movement ──
     if (!player.dying && !player.dead) {
         if (!player.isBlocking) {
             player.velocity.x = 0
             if (keys.a.pressed && player.lastKey === 'a') {
                 player.velocity.x = -7
-                player.facing = 'left'
+                player.facing     = 'left'
                 player.switchSprite('run')
             } else if (keys.d.pressed && player.lastKey === 'd') {
                 player.velocity.x = 7
-                player.facing = 'right'
+                player.facing     = 'right'
                 player.switchSprite('run')
             } else {
                 player.switchSprite('idle')
@@ -317,7 +324,7 @@ function loop() {
                 if (!player.isBlockingHit(e.attackBox)) {
                     player.takeHit(e.hitDamage)
                     recordHitTaken()
-                    comboTracker.reset()   // taking a hit breaks your combo
+                    comboTracker.reset()
                 } else {
                     player.takeHit(Math.floor(e.hitDamage * 0.1), true)
                 }

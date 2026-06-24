@@ -1,32 +1,35 @@
 import { useState, useRef, useCallback } from 'react'
 import useAuth from './hooks/useAuth.js'
-import GameCanvas       from './components/GameCanvas.jsx'
-import Menu             from './components/Menu.jsx'
-import HUD              from './components/HUD.jsx'
-import LevelTransition  from './components/LevelTransition.jsx'
-import EndScreen        from './components/EndScreen.jsx'
-import EndGame          from './components/EndGame.jsx'
-import Leaderboard      from './components/Leaderboard.jsx'
-import MobileControls   from './components/MobileControls.jsx'
+import GameCanvas      from './components/GameCanvas.jsx'
+import Menu            from './components/Menu.jsx'
+import HUD             from './components/HUD.jsx'
+import LevelTransition from './components/LevelTransition.jsx'
+import EndScreen       from './components/EndScreen.jsx'
+import EndGame         from './components/EndGame.jsx'
+import Leaderboard     from './components/Leaderboard.jsx'
+import MobileControls  from './components/MobileControls.jsx'
+import ComboDisplay    from './components/ComboDisplay.jsx'
 
 // phase: 'menu' | 'playing' | 'gameover' | 'victory'
 
 export default function App() {
     const auth = useAuth()
 
-    const [menuUser,    setMenuUser]    = useState(() =>
+    const [menuUser,   setMenuUser]   = useState(() =>
         localStorage.getItem('shinobiToken') ? localStorage.getItem('shinobiUser') : null
     )
+    const [phase,      setPhase]      = useState('menu')
+    const [score,      setScore]      = useState(0)
+    const [timer,      setTimer]      = useState(60)
+    const [transition, setTransition] = useState(null)
+    const [gameResult, setGameResult] = useState(null)
+    const [showLb,     setShowLb]     = useState(false)
+    const [combo,      setCombo]      = useState(null)
 
-    const [phase,       setPhase]       = useState('menu')
-    const [score,       setScore]       = useState(0)
-    const [timer,       setTimer]       = useState(60)
-    const [transition,  setTransition]  = useState(null)
-    const [gameResult,  setGameResult]  = useState(null)
-    const [showLb,      setShowLb]      = useState(false)
+    const engineRef      = useRef({})
+    const comboTimeoutRef = useRef(null)
 
-    const engineRef = useRef({})
-
+    // ── Auth ──────────────────────────────────────────────────────────────────
     const handleLogin = useCallback(async (u, p) => {
         const err = await auth.login(u, p)
         if (!err) setMenuUser(u)
@@ -39,13 +42,10 @@ export default function App() {
         return err
     }, [auth])
 
-    const handleGuest = useCallback(() => setMenuUser(''), [])
+    const handleGuest  = useCallback(() => setMenuUser(''), [])
+    const handleLogout = useCallback(() => { auth.logout(); setMenuUser(null) }, [auth])
 
-    const handleLogout = useCallback(() => {
-        auth.logout()
-        setMenuUser(null)
-    }, [auth])
-
+    // ── Game ──────────────────────────────────────────────────────────────────
     const handlePlay = useCallback(() => {
         setScore(0)
         engineRef.current.startGame?.()
@@ -53,16 +53,14 @@ export default function App() {
 
     const handleMenu = useCallback(() => setPhase('menu'), [])
 
-    const onScore  = useCallback((s) => setScore(s),  [])
-    const onTimer  = useCallback((t) => setTimer(t),  [])
-    const onPhase  = useCallback((p) => setPhase(p),  [])
+    // ── Engine callbacks ──────────────────────────────────────────────────────
+    const onScore  = useCallback((s) => setScore(s), [])
+    const onTimer  = useCallback((t) => setTimer(t), [])
+    const onPhase  = useCallback((p) => setPhase(p), [])
 
     const onTransition = useCallback((level, name, grade, done) => {
         setTransition({ level, name, grade })
-        setTimeout(() => {
-            setTransition(null)
-            done()
-        }, 2400)
+        setTimeout(() => { setTransition(null); done() }, 2400)
     }, [])
 
     const onVictory = useCallback((finalScore) => {
@@ -79,24 +77,25 @@ export default function App() {
         auth.submitScore(s, lvl)
     }, [auth])
 
+    const onCombo = useCallback(({ name, count }) => {
+        console.log('combo fired', name, count)
+        setCombo({ name, count })
+        clearTimeout(comboTimeoutRef.current)
+        comboTimeoutRef.current = setTimeout(() => setCombo(null), 1800)
+    }, [])
+
     return (
-        // Full-viewport stage. Everything UI (menus, overlays, controls) is
-        // positioned against THIS, not the canvas — so it has real room to
-        // breathe and scroll regardless of how small/letterboxed the canvas
-        // renders at a given orientation.
-        <div
-            style={{
-                position: 'relative',
-                width: '100vw',
-                height: '100dvh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'black',
-                overflow: 'hidden',
-            }}
-        >
-            {/* Canvas + the overlays that are visually "painted on" the scene */}
+        <div style={{
+            position: 'relative',
+            width: '100vw',
+            height: '100dvh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'black',
+            overflow: 'hidden',
+        }}>
+            {/* Canvas + scene overlays */}
             <div style={{ position: 'relative', display: 'inline-block' }}>
                 <GameCanvas
                     phase={phase}
@@ -107,6 +106,7 @@ export default function App() {
                     onVictory={onVictory}
                     onGameOver={onGameOver}
                     onSubmitScore={onSubmitScore}
+                    onCombo={onCombo}
                     engineRef={engineRef}
                 />
 
@@ -116,14 +116,19 @@ export default function App() {
                 }} />
 
                 {phase === 'playing' && <HUD timer={timer} score={score} />}
+                {phase === 'playing' && combo && <ComboDisplay name={combo.name} count={combo.count} />}
             </div>
 
-            {/* Touch controls are pinned to the physical screen edges (not the
-                canvas), so they stay thumb-reachable whether the canvas is
-                full-bleed (landscape) or letterboxed (portrait). */}
+            {/* Touch controls pinned to screen edges */}
             {phase === 'playing' && <MobileControls />}
 
-            {transition && (<LevelTransition level={transition.level} name={transition.name} grade={transition.grade} />)}
+            {transition && (
+                <LevelTransition
+                    level={transition.level}
+                    name={transition.name}
+                    grade={transition.grade}
+                />
+            )}
 
             {phase === 'menu' && (
                 <Menu
