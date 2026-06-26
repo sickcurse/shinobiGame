@@ -219,7 +219,7 @@ export class Fighter extends Sprite {
         const barWidth  = this.healthBarWidth
         const barHeight = 8
         const x = this.position.x + this.width / 2 - barWidth / 2
-        const y = this.position.y - 25
+        const y = this.position.y - this.offset.y - 15
 
         ctx.c.fillStyle = 'rgba(0,0,0,0.6)'
         ctx.c.fillRect(x - 2, y - 2, barWidth + 4, barHeight + 4)
