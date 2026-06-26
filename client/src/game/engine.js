@@ -24,6 +24,8 @@ const _killedEnemies = new WeakSet()
 let _hudInterval   = null
 
 const keys = { a: { pressed: false }, d: { pressed: false } }
+const _lastTapTime  = { a: 0, d: 0 }
+const DASH_TAP_WINDOW = 200
 
 // ── Public API ────────────────────────────────────────────────────────────────
 export function init(canvasEl, callbacks) {
@@ -133,7 +135,7 @@ function processPlayerHit(enemy, type) {
     recordDamageDealt(dmg)
 
     // hitstop — heavy hits freeze longer
-    _hitstopFrames = type === 'H' ? 21 : 14
+    _hitstopFrames = type === 'H' ? 8 : 5
 
     // heavy knockback (only if not in a combo chain)
     if (type === 'H' && hitCount <= 1) {
@@ -264,7 +266,13 @@ function loop() {
 
     // ── Player movement ──
     if (!player.dying && !player.dead) {
-        if (!player.isBlocking) {
+        if (player.isDashing) {
+            player.velocity.x = player.dashDirection * 20
+            player.facing     = player.dashDirection > 0 ? 'right' : 'left'
+            player.switchSprite('run')
+            if (player.velocity.y < 0) player.switchSprite('jump')
+            else if (player.velocity.y > 0) player.switchSprite('fall')
+        } else if (!player.isBlocking) {
             player.velocity.x = 0
             if (keys.a.pressed && player.lastKey === 'a') {
                 player.velocity.x = -7
@@ -345,8 +353,38 @@ export function onKeyDown(e) {
     if (!gameActive || !player) return
     if (!player.dead && !player.dying) {
         switch (e.key) {
-            case 'd': keys.d.pressed = true;  player.lastKey = 'd'; break
-            case 'a': keys.a.pressed = true;  player.lastKey = 'a'; break
+            case 'd': {
+                if (!keys.d.pressed) {
+                    const now = performance.now()
+                    if (now - _lastTapTime.d < DASH_TAP_WINDOW &&
+                        !player.isDashing &&
+                        !player.isBlocking && !player.isAttacking) {
+                        player.isDashing     = true
+                        player.dashTimer     = 12
+                        player.dashDirection = 1
+                    }
+                    _lastTapTime.d = now
+                }
+                keys.d.pressed = true
+                player.lastKey = 'd'
+                break
+            }
+            case 'a': {
+                if (!keys.a.pressed) {
+                    const now = performance.now()
+                    if (now - _lastTapTime.a < DASH_TAP_WINDOW &&
+                        !player.isDashing &&
+                        !player.isBlocking && !player.isAttacking) {
+                        player.isDashing     = true
+                        player.dashTimer     = 12
+                        player.dashDirection = -1
+                    }
+                    _lastTapTime.a = now
+                }
+                keys.a.pressed = true
+                player.lastKey = 'a'
+                break
+            }
             case 'w': player.velocity.y = -18; break
             case 'j': e.preventDefault(); player.lightAttack(); break
             case 'k': e.preventDefault(); player.heavyAttack(); break

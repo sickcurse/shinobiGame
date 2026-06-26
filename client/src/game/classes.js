@@ -90,7 +90,11 @@ export class Fighter extends Sprite {
         this.velocity  = { ...velocity }
         this.width     = 50  * layoutScale
         this.height    = 150 * layoutScale
-        this.lastKey   = null
+        this.lastKey       = null
+        this.isDashing        = false
+        this.dashTimer        = 0
+        this.dashDirection    = 0
+        this._takeHitComplete = false
 
         this.attackBox = {
             position: { x: this.position.x, y: this.position.y },
@@ -275,6 +279,13 @@ export class Fighter extends Sprite {
         if (!this.dead) {
             this.animateFrames()
             if (
+                this.sprites?.takeHit &&
+                this.image === this.sprites.takeHit.image &&
+                this.frameCurrent === this.sprites.takeHit.frameMax - 1
+            ) {
+                this._takeHitComplete = true
+            }
+            if (
                 this.sprites?.death &&
                 this.image === this.sprites.death.image &&
                 this.frameCurrent === this.sprites.death.frameMax - 1
@@ -297,6 +308,9 @@ export class Fighter extends Sprite {
         // update tight block box — centered horizontally, upper 70% of body
         this.blockBox.position.x = this.position.x + this.width / 2 - this.blockBox.width / 2
         this.blockBox.position.y = this.position.y + this.height * 0.15
+
+        if (this.dashTimer > 0) this.dashTimer--
+        else                    this.isDashing = false
 
         this.position.x += this.velocity.x
 
@@ -382,9 +396,10 @@ export class Fighter extends Sprite {
             this.isBlocking        = false
             this.switchSprite('death')
         } else {
-            this.isAttacking      = false
-            this.isAttackingLight = false
-            this.isAttackingHeavy = false
+            this.isAttacking       = false
+            this.isAttackingLight  = false
+            this.isAttackingHeavy  = false
+            this._takeHitComplete  = false
             this.switchSprite('takeHit')
         }
     }
@@ -392,7 +407,7 @@ export class Fighter extends Sprite {
     switchSprite(sprite) {
         if (this.image === this.sprites.death.image) return false
 
-        if (this.image === this.sprites.takeHit.image && this.frameCurrent < this.sprites.takeHit.frameMax - 1) {
+        if (this.image === this.sprites.takeHit.image && !this._takeHitComplete) {
             if (sprite !== 'death') return false
         }
         if (this.image === this.sprites.attack1.image && this.frameCurrent < this.sprites.attack1.frameMax - 1) {
