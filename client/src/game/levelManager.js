@@ -10,8 +10,8 @@ const kenjiSprites = {
 
 function kenjiAt(x, extras = {}) {
     return {
-        position:            { x, y: 0 },
-        homePosition:        { x, y: 0 },
+        position:            { x, y: 360 },
+        homePosition:        { x, y: 360 },
         velocity:            { x: 0, y: 0 },
         color:               'blue',
         imageSrc:            '/img/kenji/Idle.png',
@@ -27,14 +27,14 @@ function kenjiAt(x, extras = {}) {
 }
 
 const playerBase = {
-    position: { x: 0, y: 0 },
+    position: { x: 150, y: 360 },
     velocity: { x: 0, y: 0 },
     imageSrc: '/img/samuraiMack/Idle.png',
-    frameMax: 1,
+    frameMax: 8,
     scale:    2,
     offset:   { x: 75, y: 350 },
     sprites: {
-        idle:    { imageSrc: '/img/samuraiMack/Idle.png',                        frameMax: 1 },
+        idle:    { imageSrc: '/img/samuraiMack/Idle.png',                        frameMax: 8 },
         run:     { imageSrc: '/img/samuraiMack/Run.png',                         frameMax: 8 },
         jump:    { imageSrc: '/img/samuraiMack/Jump.png',                        frameMax: 2 },
         fall:    { imageSrc: '/img/samuraiMack/Fall.png',                        frameMax: 2 },
